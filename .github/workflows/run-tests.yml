@@ -1,0 +1,30 @@
+name: FST tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+jobs:
+  run-tests:
+    name: Run tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Get some info
+        run: |
+          pwd
+          ls -la
+          echo "# df -h" && df -h
+          marazm || :
+
+      - name: Checkout (Get codes)
+        uses: actions/checkout@v2
+
+      - name: Get some info
+        run: |
+          pwd
+          ls -la
+
+      - name: Run unittests
+        run: python3 -m unittest discover -v -s "./tests" -p "test*.py"
