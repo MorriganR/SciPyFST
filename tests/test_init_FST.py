@@ -23,14 +23,16 @@ class TestInitFST(unittest.TestCase):
 
         fstMoore = FST(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
         self.assertTrue(fstMoore.isValid())
-        self.assertEqual(fstMoore.type, 'Moore')
+        self.assertEqual(fstMoore.getType(), 'Moore')
 
         fstMealy = FST(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunctionMealy)
         self.assertTrue(fstMealy.isValid())
-        self.assertEqual(fstMealy.type, 'Mealy')
+        self.assertEqual(fstMealy.getType(), 'Mealy')
 
         zero2_fst = FST(states, 5, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
         self.assertFalse(zero2_fst.isValid())
+
+        fstMoore.toDot()
 
 if __name__ == '__main__':
     unittest.main()

@@ -24,7 +24,8 @@ class SciPyFST:
         outputFunction = [ [0,1,0], [1,1,0], [2,2,2]]
         """
 
-        self.type = self.__detTypeByOutputFunction()
+        self.__type = self.__detTypeByOutputFunction()
+
 
     def __detTypeByOutputFunction(self):
         if len(self.outputFunction[0]) == 2:
@@ -38,8 +39,39 @@ class SciPyFST:
         # TODO more checks needed
         return True
 
+    def getType(self):
+        """
+        Return FST type as string - "Moore" or "Mealy"
+        """
+        return self.__type
+
     def toDot(self):
-        if self.initState not in self.states:
-            return False
-        # TODO more checks needed
-        return True
+        """
+        !!! DRAFT !!!
+        Output example:\n
+        digraph fst {\n
+            rankdir=LR;\n
+            node [shape = point ]; none\n
+            node [shape = doublecircle]; 0; # initState\n
+            none -> 0;\n
+            node [shape = circle]; 0 1; # states\n
+            node [style=filled, fillcolor=red];\n
+            0 -> 1 [ label = 2 ]; # State -> nextState [ label = "inAlphabet" ]\n
+            0 -> 0 [ label = 1 ];\n
+            1 -> 0 [ label = 0 ];\n
+            1 -> 2 [ label = 0 ];\n
+            2 -> 1 [ label = 2 ];\n
+            2 -> 2 [ label = 0 ];
+        }
+        """
+
+        outStringMoore = "digraph fst {\n\trankdir=LR;\n\tnode [shape = point ]; none\n\tnode [shape = doublecircle]; " + \
+            "{initState};\n\tnone -> {initState};\n".format(initState = 'q' + str(self.initState)) + \
+            "\tnode [shape = circle]; {states};\n".format(states = ' '.join('q' + str(x) for x in self.states)) + \
+            "\tnode [style=filled, fillcolor=red];\n"
+        for (state, inAlphabet, nextState) in self.transitionFunction:
+            outStringMoore += "\t{state} -> {nextState} [ label = {inAlphabet} ];\n".format(
+                state = 'q' + str(state),
+                nextState = 'q' + str(nextState),
+                inAlphabet = str(inAlphabet))
+        return outStringMoore + "}"
