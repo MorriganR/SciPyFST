@@ -14,5 +14,9 @@
     ],
     "python.analysis.extraPaths": [
         "./SciPyFST"
-    ]
+    ],
+    "telemetry.enableCrashReporter": false,
+    "editor.bracketPairColorization.enabled": true,
+    "python.pythonPath": "venvdev\\Scripts\\python.exe",
+    "jupyter.jupyterServerType": "local"
 }
