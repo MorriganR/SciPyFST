@@ -34,3 +34,5 @@ pip freeze > requirements.txt
 ## Installed for Dev
 - numpy
 - ipykernel
+- graphviz
+  - add binary https://www.graphviz.org/download/
