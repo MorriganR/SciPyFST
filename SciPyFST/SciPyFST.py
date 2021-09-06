@@ -65,13 +65,18 @@ class SciPyFST:
         }
         """
 
-        outStringMoore = "digraph fst {\n\trankdir=LR;\n\tnode [shape = point ]; none\n\tnode [shape = doublecircle]; " + \
-            "{initState};\n\tnone -> {initState};\n".format(initState = 'q' + str(self.initState)) + \
-            "\tnode [shape = circle]; {states};\n".format(states = ' '.join('q' + str(x) for x in self.states)) + \
-            "\tnode [style=filled, fillcolor=red];\n"
+        outStringMoore = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=doublecircle];" + \
+            " {initState} [label=q{initState}];\n\tstart -> {initState};".format(initState = str(self.initState)) + \
+            "\n\tnode [shape=circle];"
+            # "\t{states};\n".format(states = ' '.join('q' + str(x) for x in self.states)) + \
+        for state in self.states:
+            if state != self.initState:
+                outStringMoore += "\n\t{state} [label=q{state}];".format(state = state)
+        outStringMoore += "\n\tnode [style=filled, fillcolor=red];"
         for (state, inAlphabet, nextState) in self.transitionFunction:
-            outStringMoore += "\t{state} -> {nextState} [ label = {inAlphabet} ];\n".format(
-                state = 'q' + str(state),
-                nextState = 'q' + str(nextState),
+            outStringMoore += "\n\t{state} -> {nextState} [label={inAlphabet}];".format(
+                state = str(state),
+                nextState = str(nextState),
                 inAlphabet = str(inAlphabet))
-        return outStringMoore + "}"
+        outStringMoore += "\n}"
+        return outStringMoore
