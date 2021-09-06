@@ -16,6 +16,10 @@ class SciPyFST:
         """ transitionFunction [ [State, inAlphabet, nextState], ...]\n
         transitionFunction = [ [0,0,1], [1,0,1], [1,1,2] ] """
 
+        self.trFuncDict = dict()
+        for (curentState, inSignal, nextState) in self.transitionFunction:
+            self.trFuncDict[curentState, inSignal] = nextState
+
         self.outputFunction = outputFunction
         """
         outputFunction Moore [ [State, outAlphabet], ...]\n
@@ -44,6 +48,14 @@ class SciPyFST:
         Return FST type as string - "Moore" or "Mealy"
         """
         return self.__type
+
+    def getNextState(self, curentState, inSignal):
+        if (curentState, inSignal) in self.trFuncDict:
+            return self.trFuncDict[curentState, inSignal]
+        return
+
+    def getOutSignal(self, curentState, inSignal):
+        return
 
     def toDot(self):
         """
@@ -80,3 +92,33 @@ class SciPyFST:
                 inAlphabet = str(inAlphabet))
         outStringMoore += "\n}"
         return outStringMoore
+
+    def toMdTransitionTable(self):
+        """
+        !!! DRAFT !!!
+        Output example:\n
+        | Input \\ State | q0  | q1  | q2  | q3  |
+        |:--------------:|:---:|:---:|:---:|:---:|
+        |       0        | ... | ... | ... | q0  |
+        |       1        | ... | q2  | ... | ... |
+        |       2        | ... | ... | ... | ... |
+        """
+
+        outString = "| Input \\ state |"
+        for state in self.states:
+            outString += " q{state} |".format(state = state)
+        outString += "\n|:---:|"
+        for state in self.states:
+            outString += ":---:|"
+        outString += "\n"
+        for inSignal in self.inAlphabet:
+            outString += "| __{inSignal}__ |".format(inSignal = inSignal)
+            for curentState in self.states:
+                #if (curentState, inSignal) in self.trFuncDict:
+                #    outString += " q{nextState} |".format(nextState = self.trFuncDict[curentState, inSignal])
+                if self.getNextState(curentState, inSignal):
+                    outString += " q{nextState} |".format(nextState = self.getNextState(curentState, inSignal))
+                else:
+                    outString += " ... |"
+            outString += "\n"
+        return outString
