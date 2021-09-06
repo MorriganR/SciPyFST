@@ -84,7 +84,7 @@ class SciPyFST:
         for state in self.states:
             if state != self.initState:
                 outStringMoore += "\n\t{state} [label=q{state}];".format(state = state)
-        outStringMoore += "\n\tnode [style=filled, fillcolor=red];"
+        outStringMoore += "\n\tnode [style=filled, fillcolor=hotpink];"
         for (state, inAlphabet, nextState) in self.transitionFunction:
             outStringMoore += "\n\t{state} -> {nextState} [label={inAlphabet}];".format(
                 state = str(state),
@@ -116,7 +116,7 @@ class SciPyFST:
             for curentState in self.states:
                 #if (curentState, inSignal) in self.trFuncDict:
                 #    outString += " q{nextState} |".format(nextState = self.trFuncDict[curentState, inSignal])
-                if self.getNextState(curentState, inSignal):
+                if self.getNextState(curentState, inSignal) is not None:
                     outString += " q{nextState} |".format(nextState = self.getNextState(curentState, inSignal))
                 else:
                     outString += " ... |"
