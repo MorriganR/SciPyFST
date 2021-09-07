@@ -1,15 +1,15 @@
 class SciPyFST:
-    def __init__(self, states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunction):
-        self.states = states
+    def __init__(self, states: list, initState: int, inAlphabet: list, outAlphabet: list, transitionFunction, outputFunction):
+        self.states = sorted(states)
         """ states = [0,1,2] """
 
         self.initState = initState
         """ initState = 0 """
 
-        self.inAlphabet = inAlphabet
+        self.inAlphabet = sorted(inAlphabet)
         """ inAlphabet = [0,1] """
 
-        self.outAlphabet = outAlphabet
+        self.outAlphabet = sorted(outAlphabet)
         """ outAlphabet = [0,1,2] """
 
         self.transitionFunction = transitionFunction
@@ -139,7 +139,7 @@ class SciPyFST:
         |       2        | ... | ... | ... | ... |
         """
 
-        outString = "| Input \\ state |"
+        outString = "| Input \\ State |"
         if self.isMoore():
             for state in self.states:
                 outString += " q{state} / {outSignal} |".format(state = state, outSignal = self.getOutSignal(state, None, "..."))
