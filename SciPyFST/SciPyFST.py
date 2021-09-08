@@ -27,13 +27,15 @@ class SciPyFST:
         self.__type = self.__detTypeByOutputFunction()
 
         self.states = sorted(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))
+        self.inAlphabet = sorted(dict.fromkeys(self.inAlphabet + self.__getInAlphabetFromTransitionAndOutputFunction()))
+        self.outAlphabet = sorted(dict.fromkeys(self.outAlphabet + self.__getOutAlphabetFromTransitionAndOutputFunction()))
 
         self.trFuncDict = dict()
         for (curentState, inSignal, nextState) in self.transitionFunction:
             self.trFuncDict[curentState, inSignal] = nextState
 
         self.outFuncDict = dict()
-        if self.getType() == 'Moore':
+        if self.isMoore():
             for (curentState, outSignal) in self.outputFunction:
                 self.outFuncDict[curentState] = outSignal
         else:
@@ -51,12 +53,31 @@ class SciPyFST:
         for (curentState, inSignal, nextState) in self.transitionFunction:
             toOut.append(curentState)
             toOut.append(nextState)
-        if self.getType() == 'Moore':
+        if self.isMoore():
             for (curentState, outSignal) in self.outputFunction:
                 toOut.append(curentState)
         else:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 toOut.append(curentState)
+        return sorted(dict.fromkeys(toOut))
+
+    def __getInAlphabetFromTransitionAndOutputFunction(self):
+        toOut = []
+        for (curentState, inSignal, nextState) in self.transitionFunction:
+            toOut.append(inSignal)
+        if self.isMealy():
+            for (curentState, inSignal, outSignal) in self.outputFunction:
+                toOut.append(inSignal)
+        return sorted(dict.fromkeys(toOut))
+
+    def __getOutAlphabetFromTransitionAndOutputFunction(self):
+        toOut = []
+        if self.isMoore():
+            for (curentState, outSignal) in self.outputFunction:
+                toOut.append(outSignal)
+        else:
+            for (curentState, inSignal, outSignal) in self.outputFunction:
+                toOut.append(outSignal)
         return sorted(dict.fromkeys(toOut))
 
     def isValid(self):
