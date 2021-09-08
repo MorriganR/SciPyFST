@@ -97,6 +97,17 @@ class SciPyFST:
         else:
             return self.outFuncDict.get((curentState, inSignal), ifNotInDict)
 
+    def playFST(self, inSignals: list):
+        outSignals = []
+        curentState = self.initState
+        outStates = []
+        outStates.append(curentState)
+        for inSignal in inSignals:
+            outSignals.append(self.getOutSignal(curentState, inSignal, -1))
+            curentState = self.getNextState(curentState, inSignal, curentState)
+            outStates.append(curentState)
+        return outSignals, outStates
+
     def toDot(self):
         """
         !!! DRAFT !!!
