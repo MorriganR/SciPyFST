@@ -151,25 +151,25 @@ class SciPyFST:
 
         outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=doubleoctagon];"
         if self.isMoore():
-            outString += " {initState} [label=\"{initState}/{outSignal}\"];".format(
+            outString += " \"{initState}\" [label=\"{initState}/{outSignal}\"];".format(
                 initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, "..."))
         else:
-            outString += " {initState} [label=\"{initState}\"];".format(initState = str(self.initState))
-        outString += "\n\tstart -> {initState} [label=start];\n\tnode [shape=oval];".format(initState = str(self.initState))
+            outString += " \"{initState}\" [label=\"{initState}\"];".format(initState = str(self.initState))
+        outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=oval];".format(initState = str(self.initState))
         for state in self.states:
             if state != self.initState:
                 if self.isMoore():
-                    outString += "\n\t{state} [label=\"{state}/{outSignal}\"];".format(
+                    outString += "\n\t\"{state}\" [label=\"{state}/{outSignal}\"];".format(
                         state = state, outSignal = self.getOutSignal(state, None, "..."))
                 else:
-                    outString += "\n\t{state} [label={state}];".format(state = state)
+                    outString += "\n\t\"{state}\" [label=\"{state}\"];".format(state = state)
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
         for (state, inSignal, nextState) in self.transitionFunction:
             if self.isMoore():
-                outString += "\n\t{state} -> {nextState} [label={inSignal}];".format(
+                outString += "\n\t\"{state}\" -> \"{nextState}\" [label={inSignal}];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal))
             else:
-                outString += "\n\t{state} -> {nextState} [label=\"{inSignal}/{outSignal}\"];".format(
+                outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal}/{outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
                     outSignal = self.getOutSignal(state, inSignal, "..."))
         outString += "\n}"
