@@ -26,6 +26,8 @@ class SciPyFST:
 
         self.__type = self.__detTypeByOutputFunction()
 
+        self.states = sorted(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))
+
         self.trFuncDict = dict()
         for (curentState, inSignal, nextState) in self.transitionFunction:
             self.trFuncDict[curentState, inSignal] = nextState
@@ -43,6 +45,19 @@ class SciPyFST:
         if len(self.outputFunction[0]) == 2:
             return 'Moore'
         return 'Mealy'
+
+    def __getStatesFromTransitionAndOutputFunction(self):
+        toOut = []
+        for (curentState, inSignal, nextState) in self.transitionFunction:
+            toOut.append(curentState)
+            toOut.append(nextState)
+        if self.getType() == 'Moore':
+            for (curentState, outSignal) in self.outputFunction:
+                toOut.append(curentState)
+        else:
+            for (curentState, inSignal, outSignal) in self.outputFunction:
+                toOut.append(curentState)
+        return sorted(dict.fromkeys(toOut))
 
     def isValid(self):
         """ Check """
