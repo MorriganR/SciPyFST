@@ -122,13 +122,10 @@ class SciPyFST:
         outSignals = []
         curentState = self.initState
         outStates = []
-        if self.isMealy():
-            outStates.append(curentState)
-        # outSignals.append(self.getOutSignal(curentState, inSignals[0], -1))
         for inSignal in inSignals:
-            curentState = self.getNextState(curentState, inSignal, curentState)
             outStates.append(curentState)
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
+            curentState = self.getNextState(curentState, inSignal, curentState)
         return outSignals, outStates
 
     def playToWave(self, inSignals: list, hscale=1, useLogic=False):
@@ -152,7 +149,6 @@ class SciPyFST:
         prefixSTT = ""
         prefixOUT = ""
         for inSignal in inSignals:
-            curentState = self.getNextState(curentState, inSignal, curentState)
             waveCLK += "."
             if useLogic and inSignal in [0, 1]:
                 waveCMD += str(inSignal)
@@ -172,6 +168,7 @@ class SciPyFST:
                 waveOUT += "="
                 dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = self.getOutSignal(curentState, inSignal, -1))
                 prefixOUT = ", "
+            curentState = self.getNextState(curentState, inSignal, curentState)
         waveCLK += "\" },"
         waveCMD += dataCMD + "] },"
         waveSTT += dataSTT + "] },"
