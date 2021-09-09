@@ -160,11 +160,11 @@ class SciPyFST:
         """
         curentState = self.initState
         waveCLK = "{ \"name\": \"CLK\",  \"wave\": \"P"
-        waveCMD = "{ \"name\": \"CMD\",  \"wave\": \"x"
+        waveCMD = "{ \"name\": \"CMD\",  \"wave\": \"z"
         dataCMD = "\", \"data\": ["
-        waveSTT = "{ \"name\": \"STT\",  \"wave\": \"z"
+        waveSTT = "{ \"name\": \"STT\",  \"wave\": \"x"
         dataSTT = "\", \"data\": ["
-        waveOUT = "{ \"name\": \"OUT\",  \"wave\": \"z"
+        waveOUT = "{ \"name\": \"OUT\",  \"wave\": \"x"
         dataOUT = "\", \"data\": ["
         prefixCMD = ""
         prefixSTT = ""
@@ -191,9 +191,10 @@ class SciPyFST:
                 prefixOUT = ", "
             curentState = self.getNextState(curentState, inSignal, curentState)
         waveCLK += "\" },"
-        waveCMD += dataCMD + "] },"
+        waveCMD += dataCMD + "],\"phase\":" + str(0.5 * hscale) + "},"
+        #waveCMD2 = dataCMD + "],\"phase\":0.5},"
         waveSTT += dataSTT + "] },"
-        waveOUT += dataOUT + "] }"
+        waveOUT += dataOUT + "],\"phase\":" + str(-0.15 * hscale) + "}"
         wave = "{ \"signal\": [" + waveCLK + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
         return wave
 
