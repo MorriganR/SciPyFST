@@ -34,5 +34,22 @@ class TestInitFST(unittest.TestCase):
 
         fstMoore.toDot()
 
+    def test_init_empty_fst(self):
+        fst01 = FST([], None, [], [], [], [])
+        self.assertTrue(fst01.getType() is None)
+
+        self.assertTrue(fst01.setType('Mealy'))
+        self.assertTrue(fst01.getType() == 'Mealy')
+        self.assertTrue(fst01.isMealy())
+        self.assertFalse(fst01.isMoore())
+
+        self.assertTrue(fst01.setType('Moore'))
+        self.assertTrue(fst01.getType() == 'Moore')
+        self.assertTrue(fst01.isMoore())
+        self.assertFalse(fst01.isMealy())
+
+        fst02 = FST()
+        self.assertTrue(fst02.getType() is None)
+
 if __name__ == '__main__':
     unittest.main()

@@ -1,5 +1,5 @@
 class SciPyFST:
-    def __init__(self, states: list, initState, inAlphabet: list, outAlphabet: list, transitionFunction, outputFunction):
+    def __init__(self, states:list=[], initState=None, inAlphabet:list=[], outAlphabet:list=[], transitionFunction:list=[], outputFunction:list=[]):
         self.states = sorted(states)
         """ states = [0,1,2] """
 
@@ -44,9 +44,11 @@ class SciPyFST:
 
 
     def __detTypeByOutputFunction(self):
-        if len(self.outputFunction[0]) == 2:
-            return 'Moore'
-        return 'Mealy'
+        if self.outputFunction:
+            if len(self.outputFunction[0]) == 2:
+                return 'Moore'
+            return 'Mealy'
+        return None
 
     def __getStatesFromTransitionAndOutputFunction(self):
         toOut = []
@@ -92,6 +94,25 @@ class SciPyFST:
         Return FST type as string - "Moore" or "Mealy"
         """
         return self.__type
+
+    def setType(self, typeString='Moore'):
+        """
+        Set FST type - "Moore" or "Mealy"
+        """
+        if typeString in ['Moore', "Mealy"]:
+            if not self.outputFunction:
+                self.__type = typeString
+                return True
+            else:
+                dem = True
+                for out in self.outputFunction:
+                    if (typeString == 'Moore' and len(out) != 2) or (typeString == 'Mealy' and len(out) != 3):
+                        dem = False
+                        break
+                if dem:
+                    self.__type = typeString
+                    return True
+        return False
 
     def isMoore(self):
         """
