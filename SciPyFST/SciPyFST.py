@@ -122,12 +122,62 @@ class SciPyFST:
         outSignals = []
         curentState = self.initState
         outStates = []
-        outStates.append(curentState)
+        if self.isMealy():
+            outStates.append(curentState)
+        # outSignals.append(self.getOutSignal(curentState, inSignals[0], -1))
         for inSignal in inSignals:
-            outSignals.append(self.getOutSignal(curentState, inSignal, -1))
             curentState = self.getNextState(curentState, inSignal, curentState)
             outStates.append(curentState)
+            outSignals.append(self.getOutSignal(curentState, inSignal, -1))
         return outSignals, outStates
+
+    def playToWave(self, inSignals: list, hscale=1, useLogic=False):
+        """
+        { "signal": [
+        { "name": "CLK",  "wave": "p......." },
+        { "name": "CMD",  "wave": "x.3x=x4x=x=x=x=x", "data": ["RAS", "NOP"] },
+        { "name": "STT",  "wave": "x.=x..=x........", "data": "ROW COL" }
+        { "name": "OUT",  "wave": "z.......0.1010z.", "data": "ROW COL" }
+        ]}
+        """
+        curentState = self.initState
+        waveCLK = "{ \"name\": \"CLK\",  \"wave\": \"P"
+        waveCMD = "{ \"name\": \"CMD\",  \"wave\": \"x"
+        dataCMD = "\", \"data\": ["
+        waveSTT = "{ \"name\": \"STT\",  \"wave\": \"z"
+        dataSTT = "\", \"data\": ["
+        waveOUT = "{ \"name\": \"OUT\",  \"wave\": \"z"
+        dataOUT = "\", \"data\": ["
+        prefixCMD = ""
+        prefixSTT = ""
+        prefixOUT = ""
+        for inSignal in inSignals:
+            curentState = self.getNextState(curentState, inSignal, curentState)
+            waveCLK += "."
+            if useLogic and inSignal in [0, 1]:
+                waveCMD += str(inSignal)
+            else:
+                waveCMD += "="
+                dataCMD += "{prefix}\"{val}\"".format(prefix = prefixCMD, val = inSignal)
+                prefixCMD = ", "
+            if False and useLogic and curentState in [0, 1]:
+                waveSTT += str(curentState)
+            else:
+                waveSTT += "="
+                dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = curentState)
+                prefixSTT = ", "
+            if useLogic and self.getOutSignal(curentState, inSignal, -1) in [0, 1]:
+                waveOUT += str(self.getOutSignal(curentState, inSignal, -1))
+            else:
+                waveOUT += "="
+                dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = self.getOutSignal(curentState, inSignal, -1))
+                prefixOUT = ", "
+        waveCLK += "\" },"
+        waveCMD += dataCMD + "] },"
+        waveSTT += dataSTT + "] },"
+        waveOUT += dataOUT + "] }"
+        wave = "{ \"signal\": [" + waveCLK + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
+        return wave
 
     def toDot(self):
         """
@@ -151,7 +201,7 @@ class SciPyFST:
 
         outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=doubleoctagon];"
         if self.isMoore():
-            outString += " \"{initState}\" [label=\"{initState}/{outSignal}\"];".format(
+            outString += " \"{initState}\" [label=\"{initState} / {outSignal}\"];".format(
                 initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, "..."))
         else:
             outString += " \"{initState}\" [label=\"{initState}\"];".format(initState = str(self.initState))
@@ -159,7 +209,7 @@ class SciPyFST:
         for state in self.states:
             if state != self.initState:
                 if self.isMoore():
-                    outString += "\n\t\"{state}\" [label=\"{state}/{outSignal}\"];".format(
+                    outString += "\n\t\"{state}\" [label=\"{state} / {outSignal}\"];".format(
                         state = state, outSignal = self.getOutSignal(state, None, "..."))
                 else:
                     outString += "\n\t\"{state}\" [label=\"{state}\"];".format(state = state)
@@ -169,7 +219,7 @@ class SciPyFST:
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [label={inSignal}];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal))
             else:
-                outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal}/{outSignal}\"];".format(
+                outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal} / {outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
                     outSignal = self.getOutSignal(state, inSignal, "..."))
         outString += "\n}"

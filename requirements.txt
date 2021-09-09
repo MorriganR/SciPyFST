@@ -1,3 +1,5 @@
 ipykernel
 numpy
 graphviz
+matplotlib
+wavedrom
