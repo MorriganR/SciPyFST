@@ -83,7 +83,7 @@ class SciPyFST:
         return sorted(dict.fromkeys(toOut))
 
     def isValid(self):
-        """ Check """
+        """ Check TODO more checks needed """
         if self.initState not in self.states:
             return False
         # TODO more checks needed
@@ -99,36 +99,31 @@ class SciPyFST:
         """
         Set FST type - "Moore" or "Mealy"
         """
-        if typeString in ['Moore', "Mealy"]:
+        if typeString in ['Moore', 'Mealy']:
             if not self.outputFunction:
                 self.__type = typeString
                 return True
-            else:
-                dem = True
-                for out in self.outputFunction:
-                    if (typeString == 'Moore' and len(out) != 2) or (typeString == 'Mealy' and len(out) != 3):
-                        dem = False
-                        break
-                if dem:
-                    self.__type = typeString
-                    return True
+            dem = True
+            for out in self.outputFunction:
+                if (typeString == 'Moore' and len(out) != 2) or (typeString == 'Mealy' and len(out) != 3):
+                    dem = False
+                    break
+            if dem:
+                self.__type = typeString
+                return True
         return False
 
     def isMoore(self):
         """
-        Return True if self.getType() == 'Moore'
+        Return True if self.getType() == 'Moore' else False
         """
-        if self.getType() == 'Moore':
-            return True
-        return False
+        return True if self.getType() == 'Moore' else False
 
     def isMealy(self):
         """
-        Return True if self.getType() == 'Mealy'
+        Return True if self.getType() == 'Mealy' else False
         """
-        if self.getType() == 'Mealy':
-            return True
-        return False
+        return True if self.getType() == 'Mealy' else False
 
     def getNextState(self, curentState, inSignal, ifNotInDict=None):
         return self.trFuncDict.get((curentState, inSignal), ifNotInDict)
@@ -175,25 +170,16 @@ class SciPyFST:
         oldSTT = None
         oldOUT = None
         # fix state after "reset"
-        if useLogicForStates and useLogic and curentState in [0, 1]:
-            waveSTT += str(curentState)
-        else:
-            waveSTT += "="
-            dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = curentState)
-            prefixSTT = ", "
-        oldSTT = curentState
-        # fix started OUT for Moore FST
-        if self.isMoore():
-            curentOUT = self.getOutSignal(curentState, inSignals[0], -1)
-            oldOUT = curentOUT
-            if useLogic and curentOUT in [0, 1]:
-                waveOUT += str(curentOUT)
+        if self.isMealy():
+            if useLogicForStates and useLogic and curentState in [0, 1]:
+                waveSTT += str(curentState)
             else:
-                waveOUT += "="
-                dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = str(curentOUT))
-                prefixOUT = ", "
-        else:
+                waveSTT += "="
+                dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = curentState)
+                prefixSTT = ", "
+            oldSTT = curentState
             waveOUT += "x"
+
         # play FST and draw Wave
         for inSignal in inSignals:
             waveCLK += "."
