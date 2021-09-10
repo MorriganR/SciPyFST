@@ -158,9 +158,11 @@ class SciPyFST:
         { "name": "OUT",  "wave": "z.......0.1010z.", "data": "ROW COL" }
         ]}
         """
+        useLogicForStates = False
         curentState = self.initState
-        waveCLK = "{ \"name\": \"CLK\",  \"wave\": \"P"
-        waveCMD = "{ \"name\": \"CMD\",  \"wave\": \"z"
+        waveCLK = "{ \"name\": \"CLK\",  \"wave\": \"P."
+        waveRST = "{ \"name\": \"RST\",  \"wave\": \"10"
+        waveCMD = "{ \"name\": \"CMD\",  \"wave\": \"zz"
         dataCMD = "\", \"data\": ["
         waveSTT = "{ \"name\": \"STT\",  \"wave\": \"x"
         dataSTT = "\", \"data\": ["
@@ -169,33 +171,75 @@ class SciPyFST:
         prefixCMD = ""
         prefixSTT = ""
         prefixOUT = ""
-        for inSignal in inSignals:
-            waveCLK += "."
-            if useLogic and inSignal in [0, 1]:
-                waveCMD += str(inSignal)
-            else:
-                waveCMD += "="
-                dataCMD += "{prefix}\"{val}\"".format(prefix = prefixCMD, val = inSignal)
-                prefixCMD = ", "
-            if False and useLogic and curentState in [0, 1]:
-                waveSTT += str(curentState)
-            else:
-                waveSTT += "="
-                dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = curentState)
-                prefixSTT = ", "
-            if useLogic and self.getOutSignal(curentState, inSignal, -1) in [0, 1]:
-                waveOUT += str(self.getOutSignal(curentState, inSignal, -1))
+        oldCMD = None
+        oldSTT = None
+        oldOUT = None
+        # fix state after "reset"
+        if useLogicForStates and useLogic and curentState in [0, 1]:
+            waveSTT += str(curentState)
+        else:
+            waveSTT += "="
+            dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = curentState)
+            prefixSTT = ", "
+        oldSTT = curentState
+        # fix started OUT for Moore FST
+        if self.isMoore():
+            curentOUT = self.getOutSignal(curentState, inSignals[0], -1)
+            oldOUT = curentOUT
+            if useLogic and curentOUT in [0, 1]:
+                waveOUT += str(curentOUT)
             else:
                 waveOUT += "="
-                dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = self.getOutSignal(curentState, inSignal, -1))
+                dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = str(curentOUT))
                 prefixOUT = ", "
+        else:
+            waveOUT += "x"
+        # play FST and draw Wave
+        for inSignal in inSignals:
+            waveCLK += "."
+            waveRST += "."
+            # Draw inSignal - CMD
+            if oldCMD == inSignal:
+                waveCMD += "."
+            else:
+                if useLogic and inSignal in [0, 1]:
+                    waveCMD += str(inSignal)
+                else:
+                    waveCMD += "="
+                    dataCMD += "{prefix}\"{val}\"".format(prefix = prefixCMD, val = str(inSignal))
+                    prefixCMD = ", "
+            # Draw States - STT
+            if oldSTT == curentState:
+                waveSTT += "."
+            else:
+                if useLogicForStates and useLogic and curentState in [0, 1]:
+                    waveSTT += str(curentState)
+                else:
+                    waveSTT += "="
+                    dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = str(curentState))
+                    prefixSTT = ", "
+            # Draw outSignal - OUT
+            curentOUT = self.getOutSignal(curentState, inSignal, -1)
+            if oldOUT == curentOUT:
+                waveOUT += "."
+            else:
+                if useLogic and curentOUT in [0, 1]:
+                    waveOUT += str(curentOUT)
+                else:
+                    waveOUT += "="
+                    dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = str(curentOUT))
+                    prefixOUT = ", "
+            # keep old value
+            oldCMD = inSignal
+            oldSTT = curentState
+            oldOUT = curentOUT
             curentState = self.getNextState(curentState, inSignal, curentState)
         waveCLK += "\" },"
-        waveCMD += dataCMD + "],\"phase\":" + str(0.5 * hscale) + "},"
-        #waveCMD2 = dataCMD + "],\"phase\":0.5},"
+        waveRST += "\" },"
+        waveCMD += dataCMD + "],\"phase\":" + str(0.85 * hscale) + "},"
         waveSTT += dataSTT + "] },"
-        waveOUT += dataOUT + "],\"phase\":" + str(-0.15 * hscale) + "}"
-        wave = "{ \"signal\": [" + waveCLK + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
+        waveOUT += dataOUT + "],\"phase\":" + ( str(-0.2 * hscale) if self.isMealy() else "0" ) + "}"
+        wave = "{ \"signal\": [" + waveCLK + waveRST + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
         return wave
 
     def toDot(self):
