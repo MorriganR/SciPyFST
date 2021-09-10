@@ -30,12 +30,12 @@ class TestInitFST(unittest.TestCase):
         self.assertEqual(fstMealy.getType(), 'Mealy')
 
         zero2_fst = FST(states, 5, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
-        self.assertFalse(zero2_fst.isValid())
+        self.assertTrue(zero2_fst.isValid())
 
         fstMoore.toDot()
 
     def test_init_empty_fst(self):
-        fst01 = FST([], None, [], [], [], [])
+        fst01 = FST()
         self.assertTrue(fst01.getType() is None)
 
         self.assertTrue(fst01.setType('Mealy'))
@@ -48,8 +48,26 @@ class TestInitFST(unittest.TestCase):
         self.assertTrue(fst01.isMoore())
         self.assertFalse(fst01.isMealy())
 
-        fst02 = FST()
+        self.assertTrue(fst01.initState is None)
+        self.assertEqual(len(fst01.states), 0)
+
+        fst02 = FST([], 0)
         self.assertTrue(fst02.getType() is None)
+        self.assertEqual(len(fst02.states), 1)
+        self.assertEqual(fst02.states[0], 0)
+        self.assertEqual(fst02.initState, 0)
+
+    def test_add_state(self):
+        fst03 = FST()
+        self.assertTrue(fst03.addState('State \'\" їієЇІє new'))
+        self.assertEqual(len(fst03.states), 1)
+        self.assertEqual(fst03.states[0], 'State \'\" їієЇІє new')
+
+        fst04 = FST([], 'S0')
+        self.assertTrue(fst04.addState('State \'\" їієЇІє new'))
+        self.assertEqual(len(fst04.states), 2)
+        self.assertTrue(fst04.states[0] in ['S0', 'State \'\" їієЇІє new'])
+        self.assertTrue(fst04.states[1] in ['S0', 'State \'\" їієЇІє new'])
 
 if __name__ == '__main__':
     unittest.main()

@@ -52,6 +52,8 @@ class SciPyFST:
 
     def __getStatesFromTransitionAndOutputFunction(self):
         toOut = []
+        if self.initState is not None:
+            toOut.append(self.initState)
         for (curentState, inSignal, nextState) in self.transitionFunction:
             toOut.append(curentState)
             toOut.append(nextState)
@@ -112,6 +114,20 @@ class SciPyFST:
                 self.__type = typeString
                 return True
         return False
+
+    def addState(self, state):
+        if state not in self.states:
+            self.states.append(state)
+            self.states = sorted(dict.fromkeys(self.states))
+        return True
+
+    def addTransition(self, curentState, inSignal, nextState):
+        self.addState(curentState)
+        self.addState(nextState)
+        if [curentState, inSignal, nextState] not in self.transitionFunction:
+            self.transitionFunction.append([curentState, inSignal, nextState])
+        self.trFuncDict[curentState, inSignal] = nextState
+        return True
 
     def isMoore(self):
         """
@@ -205,7 +221,7 @@ class SciPyFST:
                     dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = str(curentState))
                     prefixSTT = ", "
             # Draw outSignal - OUT
-            curentOUT = self.getOutSignal(curentState, inSignal, -1)
+            curentOUT = self.getOutSignal(curentState, inSignal, '...')
             if oldOUT == curentOUT:
                 waveOUT += "."
             else:
