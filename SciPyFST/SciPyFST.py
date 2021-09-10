@@ -1,22 +1,24 @@
+from copy import deepcopy
+
 class SciPyFST:
     def __init__(self, states:list=[], initState=None, inAlphabet:list=[], outAlphabet:list=[], transitionFunction:list=[], outputFunction:list=[]):
-        self.states = sorted(states)
+        self.states = sorted(dict.fromkeys(states))#, key=str)
         """ states = [0,1,2] """
 
-        self.initState = initState
+        self.initState = deepcopy(initState)
         """ initState = 0 """
 
-        self.inAlphabet = sorted(inAlphabet)
+        self.inAlphabet = sorted(dict.fromkeys(inAlphabet))#, key=str)
         """ inAlphabet = [0,1] """
 
-        self.outAlphabet = sorted(outAlphabet)
+        self.outAlphabet = sorted(dict.fromkeys(outAlphabet))#, key=str)
         """ outAlphabet = [0,1,2] """
 
-        self.transitionFunction = transitionFunction
+        self.transitionFunction = deepcopy(transitionFunction)
         """ transitionFunction [ [State, inAlphabet, nextState], ...]\n
         transitionFunction = [ [0,0,1], [1,0,1], [1,1,2] ] """
 
-        self.outputFunction = outputFunction
+        self.outputFunction = deepcopy(outputFunction)
         """
         outputFunction Moore [ [State, outAlphabet], ...]\n
         outputFunction = [ [0,0], [1,0], [2,2]]\n
@@ -26,9 +28,9 @@ class SciPyFST:
 
         self.__type = self.__detTypeByOutputFunction()
 
-        self.states = sorted(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))
-        self.inAlphabet = sorted(dict.fromkeys(self.inAlphabet + self.__getInAlphabetFromTransitionAndOutputFunction()))
-        self.outAlphabet = sorted(dict.fromkeys(self.outAlphabet + self.__getOutAlphabetFromTransitionAndOutputFunction()))
+        self.states = sorted(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))#, key=str)
+        self.inAlphabet = sorted(dict.fromkeys(self.inAlphabet + self.__getInAlphabetFromTransitionAndOutputFunction()))#, key=str)
+        self.outAlphabet = sorted(dict.fromkeys(self.outAlphabet + self.__getOutAlphabetFromTransitionAndOutputFunction()))#, key=str)
 
         self.trFuncDict = dict()
         for (curentState, inSignal, nextState) in self.transitionFunction:
@@ -63,7 +65,7 @@ class SciPyFST:
         else:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 toOut.append(curentState)
-        return sorted(dict.fromkeys(toOut))
+        return sorted(dict.fromkeys(toOut))#, key=str)
 
     def __getInAlphabetFromTransitionAndOutputFunction(self):
         toOut = []
@@ -72,7 +74,7 @@ class SciPyFST:
         if self.isMealy():
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 toOut.append(inSignal)
-        return sorted(dict.fromkeys(toOut))
+        return sorted(dict.fromkeys(toOut))#, key=str)
 
     def __getOutAlphabetFromTransitionAndOutputFunction(self):
         toOut = []
@@ -82,7 +84,7 @@ class SciPyFST:
         else:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 toOut.append(outSignal)
-        return sorted(dict.fromkeys(toOut))
+        return sorted(dict.fromkeys(toOut))#, key=str)
 
     def isValid(self):
         """ Check TODO more checks needed """
@@ -115,10 +117,15 @@ class SciPyFST:
                 return True
         return False
 
+    def deepcopy(self):
+        fst = SciPyFST(self.states, self.initState, self.inAlphabet,\
+            self.outAlphabet, self.transitionFunction, self.outputFunction)
+        return fst
+
     def addState(self, state):
         if state not in self.states:
             self.states.append(state)
-            self.states = sorted(dict.fromkeys(self.states))
+            self.states = sorted(dict.fromkeys(self.states))#, key=str)
         return True
 
     def addTransition(self, curentState, inSignal, nextState):
