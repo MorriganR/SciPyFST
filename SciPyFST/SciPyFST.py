@@ -44,6 +44,14 @@ class SciPyFST:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 self.outFuncDict[curentState, inSignal] = outSignal
 
+        self.comboStateAndOutDict = dict()
+        for (curentState, inSignal, nextState) in self.transitionFunction:
+            if self.isMoore():
+                self.comboStateAndOutDict[curentState, inSignal] = [nextState, self.outFuncDict.get(curentState)]
+            else:
+                self.comboStateAndOutDict[curentState, inSignal] = [nextState, self.outFuncDict.get((curentState, inSignal))]
+
+
 
     def __detTypeByOutputFunction(self):
         if self.outputFunction:
