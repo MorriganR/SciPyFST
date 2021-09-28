@@ -343,3 +343,46 @@ class SciPyFST:
                         outString += " ... / {outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "..."))
             outString += "\n"
         return outString
+
+    def asMoore(self):
+        if self.isMoore():
+            return self.deepcopy()
+
+        initStateMoore = -1
+        #initStateSignalMoore = -1
+        newMooreState_qi = initStateMoore # q0 without q
+        markedTranOut = dict() # key - [topHeaderState_Si, leftHeaderSignal_Xj], val - existMooreState_qi. See point (1)
+        dictForSearchNewState = dict() # key - [tableState_Sm, tableSignal_Yn] from table, val - existMooreState_qi. See point (1)
+        eqStatesFor_Si = dict() # key - tableState_Sm, val - list of existMooreState_qi [0, 2, ...]. See point (2)
+
+        outputFunctionMoore = [] # list [[state, outSignal], [...] ... ]. See point (3)
+
+        # add q0 state to S0
+        #mapForSearchNewState[self.initState, None] = newMooreState_qi
+        eqStatesFor_Si[self.initState] = [newMooreState_qi]
+        #outputFunctionMoore.append([newMooreState_qi, initStateSignalMoore])
+
+        # mark all equivalent transition-output pair as new Moore states. See point (1) & (2)
+        for topHeaderState_Si in self.states:
+            for leftHeaderSignal_Xj in self.inAlphabet:
+                tableState_Sm = self.getNextState(topHeaderState_Si, leftHeaderSignal_Xj)
+                tableSignal_Yn = self.getOutSignal(topHeaderState_Si, leftHeaderSignal_Xj)
+                existMooreState_qi = dictForSearchNewState.get((tableState_Sm, tableSignal_Yn)) # (1)
+                if existMooreState_qi is None:
+                    newMooreState_qi += 1
+                    existMooreState_qi = newMooreState_qi
+                    dictForSearchNewState[(tableState_Sm, tableSignal_Yn)] = existMooreState_qi # (1) add new state
+                    outputFunctionMoore.append([existMooreState_qi, tableSignal_Yn])
+                    tempList = eqStatesFor_Si.get(tableState_Sm, []) # (2)
+                    tempList.append(newMooreState_qi)
+                    eqStatesFor_Si[tableState_Sm] = tempList
+                markedTranOut[topHeaderState_Si, leftHeaderSignal_Xj] = existMooreState_qi
+
+        # create transition table (4)
+        transitionFunctionMoore = []
+        for key_Si, list_qj in eqStatesFor_Si.items():
+            for qj in list_qj:
+                for signal in self.inAlphabet:
+                    transitionFunctionMoore.append([qj, signal, markedTranOut.get((key_Si, signal))])
+
+        return SciPyFST([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
