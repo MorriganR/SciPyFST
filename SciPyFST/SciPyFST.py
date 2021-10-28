@@ -279,7 +279,7 @@ class SciPyFST:
         }
         """
 
-        outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=doubleoctagon];"
+        outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=oval];"
         if self.isMoore():
             outString += " \"{initState}\" [label=\"{initState} / {outSignal}\"];".format(
                 initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, "..."))
