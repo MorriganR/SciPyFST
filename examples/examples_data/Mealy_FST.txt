@@ -18,3 +18,20 @@ outputFunction = [ \
     ['S3','x1' ,'y5' ], ['S3','x2' ,'y2' ], ['S3','x3' ,'y5' ] \
 ]
 
+##### 02
+states = ['S0', 'S1' ,'S2']
+initState = 'S0'
+inAlphabet = ['x1', 'x2']
+outAlphabet = ['y1', 'y2', 'y3']
+# transitionFunction [ [State, inAlphabet, nextState], ...]
+transitionFunction = [ \
+    ['S0','x1' ,'S2' ], ['S0','x2' ,'S1' ], \
+    ['S1','x1' ,'S0' ], ['S1','x2' ,'S2' ], \
+    ['S2','x1' ,'S1' ], ['S2','x2' ,'S0' ] \
+]
+# outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
+outputFunction = [ \
+    ['S0','x1' ,'y2' ], ['S0','x2' ,'y1' ], \
+    ['S1','x1' ,'y1' ], ['S1','x2' ,'y3' ], \
+    ['S2','x1' ,'y2' ], ['S2','x2' ,'y1' ] \
+]
