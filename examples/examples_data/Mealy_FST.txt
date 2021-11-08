@@ -77,3 +77,41 @@ outputFunction = [ \
     ['A3', 'x1' ,'y2'], ['A3', 'x2' ,'y1'], ['A3', 'x3' ,'y1'] \
     ['A4', 'x1' ,'y2'], ['A4', 'x2' ,'y1'], ['A4', 'x3' ,'y1'] \
 ]
+
+##### 05
+states = ['a1', 'a2' ,'a3']
+initState = 'a1'
+inAlphabet = ['z1', 'z2']
+outAlphabet = ['w1', 'w2']
+# transitionFunction [ [State, inAlphabet, nextState], ...]
+transitionFunction = [ \
+    ['a1', 'z1' ,'a3'], ['a1', 'z2' ,'a1'], \
+    ['a2', 'z1' ,'a1'], ['a2', 'z2' ,'a3'], \
+    ['a3', 'z1' ,'a1'], ['a3', 'z2' ,'a2'] \
+]
+# outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
+outputFunction = [ \
+    ['a1', 'z1' ,'w1'], ['a1', 'z2' ,'w1'], \
+    ['a2', 'z1' ,'w1'], ['a2', 'z2' ,'w2'], \
+    ['a3', 'z1' ,'w2'], ['a3', 'z2' ,'w1'] \
+]
+
+##### 06
+states = ['a1', 'a2' ,'a3' ,'a4']
+initState = 'a1'
+inAlphabet = ['z1', 'z2']
+outAlphabet = ['w1', 'w2', 'w3']
+# transitionFunction [ [State, inAlphabet, nextState], ...]
+transitionFunction = [ \
+    ['a1', 'z1' ,'a2'], ['a1', 'z2' ,'a3'], \
+    ['a2', 'z1' ,'a3'], ['a2', 'z2' ,'--'], \
+    ['a3', 'z1' ,'a4'], ['a3', 'z2' ,'a2'], \
+    ['a4', 'z1' ,'--'], ['a4', 'z2' ,'a2'] \
+]
+# outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
+outputFunction = [ \
+    ['a1', 'z1' ,'w1'], ['a1', 'z2' ,'w2'], \
+    ['a2', 'z1' ,'w3'], ['a2', 'z2' ,'--'], \
+    ['a3', 'z1' ,'w3'], ['a3', 'z2' ,'w1'], \
+    ['a4', 'z1' ,'--'], ['a4', 'z2' ,'w2'] \
+]
