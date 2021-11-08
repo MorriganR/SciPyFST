@@ -5,17 +5,17 @@ inAlphabet = ['x1', 'x2', 'x3']
 outAlphabet = ['y1', 'y2', 'y3', 'y4', 'y5']
 # transitionFunction [ [State, inAlphabet, nextState], ...]
 transitionFunction = [ \
-    ['S0','x1' ,'S3' ], ['S0','x2' ,'S1' ], ['S0','x3' ,'S0' ], \
-    ['S1','x1' ,'S0' ], ['S1','x2' ,'S2' ], ['S1','x3' ,'S1' ], \
-    ['S2','x1' ,'S2' ], ['S2','x2' ,'S0' ], ['S2','x3' ,'S3' ], \
-    ['S3','x1' ,'S0' ], ['S3','x2' ,'S3' ], ['S3','x3' ,'S1' ] \
+    ['S0', 'x1' ,'S3'], ['S0', 'x2' ,'S1'], ['S0', 'x3' ,'S0'], \
+    ['S1', 'x1' ,'S0'], ['S1', 'x2' ,'S2'], ['S1', 'x3' ,'S1'], \
+    ['S2', 'x1' ,'S2'], ['S2', 'x2' ,'S0'], ['S2', 'x3' ,'S3'], \
+    ['S3', 'x1' ,'S0'], ['S3', 'x2' ,'S3'], ['S3', 'x3' ,'S1'] \
 ]
 # outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
 outputFunction = [ \
-    ['S0','x1' ,'y1' ], ['S0','x2' ,'y1' ], ['S0','x3' ,'y5' ], \
-    ['S1','x1' ,'y2' ], ['S1','x2' ,'y1' ], ['S1','x3' ,'y4' ], \
-    ['S2','x1' ,'y3' ], ['S2','x2' ,'y4' ], ['S2','x3' ,'y1' ], \
-    ['S3','x1' ,'y5' ], ['S3','x2' ,'y2' ], ['S3','x3' ,'y5' ] \
+    ['S0', 'x1' ,'y1'], ['S0', 'x2' ,'y1'], ['S0', 'x3' ,'y5'], \
+    ['S1', 'x1' ,'y2'], ['S1', 'x2' ,'y1'], ['S1', 'x3' ,'y4'], \
+    ['S2', 'x1' ,'y3'], ['S2', 'x2' ,'y4'], ['S2', 'x3' ,'y1'], \
+    ['S3', 'x1' ,'y5'], ['S3', 'x2' ,'y2'], ['S3', 'x3' ,'y5'] \
 ]
 
 ##### 02
@@ -25,15 +25,15 @@ inAlphabet = ['x1', 'x2']
 outAlphabet = ['y1', 'y2', 'y3']
 # transitionFunction [ [State, inAlphabet, nextState], ...]
 transitionFunction = [ \
-    ['S0','x1' ,'S2' ], ['S0','x2' ,'S1' ], \
-    ['S1','x1' ,'S0' ], ['S1','x2' ,'S2' ], \
-    ['S2','x1' ,'S1' ], ['S2','x2' ,'S0' ] \
+    ['S0', 'x1' ,'S2'], ['S0', 'x2' ,'S1'], \
+    ['S1', 'x1' ,'S0'], ['S1', 'x2' ,'S2'], \
+    ['S2', 'x1' ,'S1'], ['S2', 'x2' ,'S0'] \
 ]
 # outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
 outputFunction = [ \
-    ['S0','x1' ,'y2' ], ['S0','x2' ,'y1' ], \
-    ['S1','x1' ,'y1' ], ['S1','x2' ,'y3' ], \
-    ['S2','x1' ,'y2' ], ['S2','x2' ,'y1' ] \
+    ['S0', 'x1' ,'y2'], ['S0', 'x2' ,'y1'], \
+    ['S1', 'x1' ,'y1'], ['S1', 'x2' ,'y3'], \
+    ['S2', 'x1' ,'y2'], ['S2', 'x2' ,'y1'] \
 ]
 
 ##### 03
@@ -54,4 +54,26 @@ outputFunction = [ \
     ['A1', 'x1' ,'y2'], ['A1', 'x2' ,'y2'], \
     ['A2', 'x1' ,'y3'], ['A2', 'x2' ,'y1'], \
     ['A3', 'x1' ,'y3'], ['A3', 'x2' ,'y2'] \
+]
+
+##### 04
+states = ['A0', 'A1' ,'A2' ,'A3' ,'A4']
+initState = 'A0'
+inAlphabet = ['x1', 'x2', 'x3']
+outAlphabet = ['y1', 'y2', 'y3', 'y4', 'y5']
+# transitionFunction [ [State, inAlphabet, nextState], ...]
+transitionFunction = [ \
+    ['A0', 'x1' ,'A'], ['A0', 'x2' ,'A'], ['A0', 'x3' ,'A'], \
+    ['A1', 'x1' ,'A'], ['A1', 'x2' ,'A'], ['A1', 'x3' ,'A'], \
+    ['A2', 'x1' ,'A'], ['A2', 'x2' ,'A'], ['A2', 'x3' ,'A'], \
+    ['A3', 'x1' ,'A'], ['A3', 'x2' ,'A'], ['A3', 'x3' ,'A'], \
+    ['A4', 'x1' ,'A'], ['A4', 'x2' ,'A'], ['A4', 'x3' ,'A'] \
+]
+# outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
+outputFunction = [ \
+    ['A0', 'x1' ,'y'], ['A0', 'x2' ,'y'], ['A0', 'x3' ,'y'], \
+    ['A1', 'x1' ,'y'], ['A1', 'x2' ,'y'], ['A1', 'x3' ,'y'], \
+    ['A2', 'x1' ,'y'], ['A2', 'x2' ,'y'], ['A2', 'x3' ,'y'], \
+    ['A3', 'x1' ,'y'], ['A3', 'x2' ,'y'], ['A3', 'x3' ,'y'] \
+    ['A4', 'x1' ,'y'], ['A4', 'x2' ,'y'], ['A4', 'x3' ,'y'] \
 ]
