@@ -16,7 +16,6 @@ jobs:
           pwd
           ls -la
           echo "# df -h" && df -h
-          marazm || :
 
       - name: Checkout (Get codes)
         uses: actions/checkout@v2
