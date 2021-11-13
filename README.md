@@ -36,3 +36,7 @@ pip freeze > requirements.txt
 - ipykernel
 - graphviz
   - add binary https://www.graphviz.org/download/
+
+## Examples
+Open example with Google Colab:
+https://colab.research.google.com/github/MorriganR/SciPyFST/blob/main/examples/example_07_forColab.ipynb
