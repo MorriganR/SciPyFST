@@ -281,16 +281,16 @@ class SciPyFST:
 
         outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=oval];"
         if self.isMoore():
-            outString += " \"{initState}\" [label=\"{initState} / {outSignal}\"];".format(
-                initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, "..."))
+            outString += " \"{initState}\" [label=\"{initState}/{outSignal}\"];".format(
+                initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, "-"))
         else:
             outString += " \"{initState}\" [label=\"{initState}\"];".format(initState = str(self.initState))
         outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=oval];".format(initState = str(self.initState))
         for state in self.states:
             if state != self.initState:
                 if self.isMoore():
-                    outString += "\n\t\"{state}\" [label=\"{state} / {outSignal}\"];".format(
-                        state = state, outSignal = self.getOutSignal(state, None, "..."))
+                    outString += "\n\t\"{state}\" [label=\"{state}/{outSignal}\"];".format(
+                        state = state, outSignal = self.getOutSignal(state, None, "-"))
                 else:
                     outString += "\n\t\"{state}\" [label=\"{state}\"];".format(state = state)
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
@@ -299,9 +299,9 @@ class SciPyFST:
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [label={inSignal}];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal))
             else:
-                outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal} / {outSignal}\"];".format(
+                outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal}/{outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
-                    outSignal = self.getOutSignal(state, inSignal, "..."))
+                    outSignal = self.getOutSignal(state, inSignal, "-"))
         outString += "\n}"
         return outString
 
@@ -319,7 +319,7 @@ class SciPyFST:
         outString = "| Input \\ State |"
         if self.isMoore():
             for state in self.states:
-                outString += " {state} / {outSignal} |".format(state = state, outSignal = self.getOutSignal(state, None, "..."))
+                outString += " {state}/{outSignal} |".format(state = state, outSignal = self.getOutSignal(state, None, "-"))
         else:
             for state in self.states:
                 outString += " {state} |".format(state = state)
@@ -335,12 +335,12 @@ class SciPyFST:
                     if self.isMoore():
                         outString += " {nextState} |".format(nextState = tempVal)
                     else:
-                        outString += " {nextState} / {outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "..."))
+                        outString += " {nextState}/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
                 else:
                     if self.isMoore():
-                        outString += " ... |"
+                        outString += " - |"
                     else:
-                        outString += " ... / {outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "..."))
+                        outString += " -/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
             outString += "\n"
         return outString
 
