@@ -170,12 +170,12 @@ class SciPyFST:
 
     def getOutSignal(self, curentState, inSignal, ifNotInDict=None):
         if self.isMoore():
-            nextSate = self.outFuncDict.get(curentState, ifNotInDict)
+            outSignal = self.outFuncDict.get(curentState, ifNotInDict)
         else:
-            nextSate = self.outFuncDict.get((curentState, inSignal), ifNotInDict)
-        if nextSate is None:
+            outSignal = self.outFuncDict.get((curentState, inSignal), ifNotInDict)
+        if outSignal is None:
             return ifNotInDict
-        return nextSate
+        return outSignal
 
     def playFST(self, inSignals: list):
         outSignals = []
@@ -185,6 +185,10 @@ class SciPyFST:
             outStates.append(curentState)
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
             curentState = self.getNextState(curentState, inSignal, curentState)
+        if self.isMoore():
+            outStates.append(curentState)
+            outSignals.append(self.getOutSignal(curentState, inSignal, -1))
+
         return outSignals, outStates
 
     def playToWave(self, inSignals: list, hscale=1, useLogic=False):
@@ -401,3 +405,23 @@ class SciPyFST:
                     transitionFunctionMoore.append([qj, signal, markedTranOut.get((key_Si, signal))])
 
         return SciPyFST([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
+
+    def getTestSignal(self):
+        listOfInSignalsList = []
+        def recGetNext(curentState, visitedStates:dict, inSignals:list):
+            if visitedStates.get(curentState) is None:
+                visitedStates[curentState] = 1
+                for inSignal in self.inAlphabet:
+                    copyOfInSignals = deepcopy(inSignals)
+                    copyOfInSignals.append(inSignal)
+                    nextCurentState = self.getNextState(curentState, inSignal)
+                    if nextCurentState is None:
+                        listOfInSignalsList.append(copyOfInSignals)
+                        return
+                    else:
+                        recGetNext(nextCurentState, deepcopy(visitedStates), copyOfInSignals)
+            else:
+                listOfInSignalsList.append(inSignals)
+                return
+        recGetNext(self.initState, dict(), [])
+        return listOfInSignalsList
