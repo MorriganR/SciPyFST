@@ -6,6 +6,7 @@
 - [example_04_Add_State_Transition_etc.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_04_Add_State_Transition_etc.ipynb "example_04_Add_State_Transition_etc"),
 - [example_05_asMoore.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_05_asMoore.ipynb "example_05_asMoore"),
 - [example_08_testFST.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_08_testFST.ipynb "example_08_testFST"),
+- [example_09_getTestSignal.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_09_getTestSignal.ipynb "example_09_getTestSignal"),
 
 ### List of examples (Google Colab)
 
