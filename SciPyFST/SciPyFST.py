@@ -65,14 +65,18 @@ class SciPyFST:
         if self.initState is not None:
             toOut.append(self.initState)
         for (curentState, inSignal, nextState) in self.transitionFunction:
-            toOut.append(curentState)
-            toOut.append(nextState)
+            if curentState is not None:
+                toOut.append(curentState)
+            if nextState is not None:
+                toOut.append(nextState)
         if self.isMoore():
             for (curentState, outSignal) in self.outputFunction:
-                toOut.append(curentState)
+                if curentState is not None:
+                    toOut.append(curentState)
         else:
             for (curentState, inSignal, outSignal) in self.outputFunction:
-                toOut.append(curentState)
+                if curentState is not None:
+                    toOut.append(curentState)
         return sorted(dict.fromkeys(toOut))#, key=str)
 
     def __getInAlphabetFromTransitionAndOutputFunction(self):
@@ -88,10 +92,12 @@ class SciPyFST:
         toOut = []
         if self.isMoore():
             for (curentState, outSignal) in self.outputFunction:
-                toOut.append(outSignal)
+                if outSignal is not None:
+                    toOut.append(outSignal)
         else:
             for (curentState, inSignal, outSignal) in self.outputFunction:
-                toOut.append(outSignal)
+                if outSignal is not None:
+                    toOut.append(outSignal)
         return sorted(dict.fromkeys(toOut))#, key=str)
 
     def isValid(self):
@@ -157,13 +163,19 @@ class SciPyFST:
         return True if self.getType() == 'Mealy' else False
 
     def getNextState(self, curentState, inSignal, ifNotInDict=None):
-        return self.trFuncDict.get((curentState, inSignal), ifNotInDict)
+        nextSate = self.trFuncDict.get((curentState, inSignal), ifNotInDict)
+        if nextSate is None:
+            return ifNotInDict
+        return nextSate
 
     def getOutSignal(self, curentState, inSignal, ifNotInDict=None):
         if self.isMoore():
-            return self.outFuncDict.get(curentState, ifNotInDict)
+            nextSate = self.outFuncDict.get(curentState, ifNotInDict)
         else:
-            return self.outFuncDict.get((curentState, inSignal), ifNotInDict)
+            nextSate = self.outFuncDict.get((curentState, inSignal), ifNotInDict)
+        if nextSate is None:
+            return ifNotInDict
+        return nextSate
 
     def playFST(self, inSignals: list):
         outSignals = []
@@ -279,29 +291,32 @@ class SciPyFST:
         }
         """
 
-        outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=oval];"
+        ifNotInDict = '-'
+        outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=circle];"
         if self.isMoore():
             outString += " \"{initState}\" [label=\"{initState}/{outSignal}\"];".format(
-                initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, "-"))
+                initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, ifNotInDict))
         else:
             outString += " \"{initState}\" [label=\"{initState}\"];".format(initState = str(self.initState))
-        outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=oval];".format(initState = str(self.initState))
+        outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
         for state in self.states:
             if state != self.initState:
                 if self.isMoore():
                     outString += "\n\t\"{state}\" [label=\"{state}/{outSignal}\"];".format(
-                        state = state, outSignal = self.getOutSignal(state, None, "-"))
+                        state = state, outSignal = self.getOutSignal(state, None, ifNotInDict))
                 else:
                     outString += "\n\t\"{state}\" [label=\"{state}\"];".format(state = state)
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
         for (state, inSignal, nextState) in self.transitionFunction:
+            if nextState is None:
+                nextState = ifNotInDict
             if self.isMoore():
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [label={inSignal}];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal))
             else:
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal}/{outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
-                    outSignal = self.getOutSignal(state, inSignal, "-"))
+                    outSignal = self.getOutSignal(state, inSignal, ifNotInDict))
         outString += "\n}"
         return outString
 
@@ -348,7 +363,7 @@ class SciPyFST:
         if self.isMoore():
             return self.deepcopy()
 
-        initStateMoore = -1
+        initStateMoore = 0
         #initStateSignalMoore = -1
         newMooreState_qi = initStateMoore # q0 without q
         markedTranOut = dict() # key - [topHeaderState_Si, leftHeaderSignal_Xj], val - existMooreState_qi. See point (1)
