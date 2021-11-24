@@ -5,7 +5,7 @@
 - [example_03_Wavedrom.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_03_Wavedrom.ipynb "example_03_Wavedrom"),
 - [example_04_Add_State_Transition_etc.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_04_Add_State_Transition_etc.ipynb "example_04_Add_State_Transition_etc"),
 - [example_05_asMoore.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_05_asMoore.ipynb "example_05_asMoore"),
-- [example_08_testFST.ipynb.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_08_testFST.ipynb.ipynb "example_08_testFST.ipynb"),
+- [example_08_testFST.ipynb](https://nbviewer.jupyter.org/github/MorriganR/SciPyFST/blob/main/examples/example_08_testFST.ipynb "example_08_testFST"),
 
 ### List of examples (Google Colab)
 
