@@ -425,3 +425,15 @@ class SciPyFST:
                 return
         recGetNext(self.initState, dict(), [])
         return listOfInSignalsList
+
+    def isContains(self, fst):
+        listOfInSignalsList = fst.getTestSignal()
+        selfType = 1 if self.isMoore() else 0
+        fstType = 1 if fst.isMoore() else 0
+        for inSignalList in listOfInSignalsList:
+            if self.playFST(inSignalList)[0][selfType:] != fst.playFST(inSignalList)[0][fstType:]:
+                return False
+        return True
+
+    def isSimilar(self, fst):
+        return self.isContains(fst) and fst.isContains(self)
