@@ -184,7 +184,7 @@ class SciPyFST:
         for inSignal in inSignals:
             outStates.append(curentState)
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
-            curentState = self.getNextState(curentState, inSignal, curentState)
+            curentState = self.getNextState(curentState, inSignal)#, curentState)
         if self.isMoore():
             outStates.append(curentState)
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
