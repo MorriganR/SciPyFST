@@ -160,10 +160,10 @@ transitionFunction_08 = [ \
 ]
 # outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
 outputFunction_08 = [ \
-    ['Q1','x1','y1'], ['Q1','x2','y' ], ['Q1','x3',None], \
+    ['Q1','x1','y1'], ['Q1','x2','y2' ], ['Q1','x3',None], \
     ['Q2','x1','y2'], ['Q2','x2','y1'], ['Q2','x3',None], \
-    ['Q3','x1',None], ['Q3','x2','y' ], ['Q3','x3',None], \
-    ['Q4','x1','y2'], ['Q4','x2','y1'], ['Q4','x3','y' ], \
+    ['Q3','x1',None], ['Q3','x2','y2' ], ['Q3','x3',None], \
+    ['Q4','x1','y2'], ['Q4','x2','y1'], ['Q4','x3','y2' ], \
     ['Q5','x1','y2'], ['Q5','x2','y1'], ['Q5','x3','y1'] \
 ]
 mealyFSTmap['test08'] = (states_08, initState_08, inAlphabet_08, outAlphabet_08, transitionFunction_08, outputFunction_08)
