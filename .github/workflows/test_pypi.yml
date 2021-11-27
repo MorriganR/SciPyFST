@@ -30,14 +30,13 @@ jobs:
 
     - name: Build
       run: |
-        NEWTESTPYPIVER=$(./util/get_last_ver_from_pypi.sh SciPyFST)-$(date +%Y%m%d)-${{ github.sha }}
+        NEWTESTPYPIVER=$(./util/get_last_ver_from_pypi.sh SciPyFST).dev$(date +%Y%m%d%H%M%S)
         echo $NEWTESTPYPIVER
         sed -i "s/NEWSciPyFSTVERSION/$NEWTESTPYPIVER/g" setup.cfg
         python -m build .
 
     - name: Publish to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
-      if: false
       with:
         user: __token__
         password: ${{ secrets.TEST_PYPI_KEY }}
