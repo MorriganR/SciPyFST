@@ -59,7 +59,7 @@ jobs:
 
     - name: Publish to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
-      if: false
+      if: github.event_name == 'push'
       with:
         user: __token__
         password: ${{ secrets.TEST_PYPI_KEY }}
