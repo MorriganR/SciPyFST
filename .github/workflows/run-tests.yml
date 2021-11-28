@@ -36,7 +36,6 @@ jobs:
   build-and-publish-testpypi:
     runs-on: ubuntu-20.04
     needs: run-tests
-    if: always()
     steps:
 
     - name: Checkout
@@ -98,7 +97,7 @@ jobs:
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@master
-      if: ${{ false && github.event_name == 'release' && github.repository_owner == 'MorriganR' }}
+      if: ${{ github.event_name == 'release' && github.repository_owner == 'MorriganR' }}
       with:
         user: __token__
         password: ${{ secrets.PYPI_KEY }}
