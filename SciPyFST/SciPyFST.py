@@ -275,7 +275,7 @@ class SciPyFST:
         wave = "{ \"signal\": [" + waveCLK + waveRST + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
         return wave
 
-    def toDot(self):
+    def toDot(self, colorOfUnreachableStates: str = None):
         """
         !!! DRAFT !!!
         Output example:\n
@@ -296,6 +296,7 @@ class SciPyFST:
         """
 
         ifNotInDict = '-'
+        unreachableStates = self.getUnreachableStates() if colorOfUnreachableStates is not None else []
         outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=circle];"
         if self.isMoore():
             outString += " \"{initState}\" [label=\"{initState}/{outSignal}\"];".format(
@@ -305,11 +306,16 @@ class SciPyFST:
         outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
         for state in self.states:
             if state != self.initState:
+                fill = str('style=filled, fillcolor=' + colorOfUnreachableStates + ', ') if state in unreachableStates else ''
                 if self.isMoore():
-                    outString += "\n\t\"{state}\" [label=\"{state}/{outSignal}\"];".format(
-                        state = state, outSignal = self.getOutSignal(state, None, ifNotInDict))
+                    outString += "\n\t\"{state}\" [{fill}label=\"{state}/{outSignal}\"];".format(
+                        state = state,
+                        fill = fill,
+                        outSignal = self.getOutSignal(state, None, ifNotInDict))
                 else:
-                    outString += "\n\t\"{state}\" [label=\"{state}\"];".format(state = state)
+                    outString += "\n\t\"{state}\" [{fill}label=\"{state}\"];".format(
+                        state = state,
+                        fill = fill)
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
         for (state, inSignal, nextState) in self.transitionFunction:
             if nextState is None:
@@ -426,7 +432,7 @@ class SciPyFST:
         recGetNext(self.initState, dict(), [])
         return listOfInSignalsList
 
-    def isContains(self, fst):
+    def isContains(self, fst:'SciPyFST'):
         listOfInSignalsList = fst.getTestSignal()
         selfType = 1 if self.isMoore() else 0
         fstType = 1 if fst.isMoore() else 0
@@ -435,5 +441,22 @@ class SciPyFST:
                 return False
         return True
 
-    def isSimilar(self, fst):
+    def isSimilar(self, fst:'SciPyFST'):
         return self.isContains(fst) and fst.isContains(self)
+
+    def getUnreachableStates(self):
+        unreachableStates = dict.fromkeys(self.states)
+        def recGetNext(curentState, visitedStates:dict):
+            unreachableStates.pop(curentState, None)
+            if visitedStates.get(curentState) is None:
+                visitedStates[curentState] = 1
+                for inSignal in self.inAlphabet:
+                    nextCurentState = self.getNextState(curentState, inSignal)
+                    if nextCurentState is None:
+                        return
+                    else:
+                        recGetNext(nextCurentState, deepcopy(visitedStates))
+            else:
+                return
+        recGetNext(self.initState, dict())
+        return sorted(unreachableStates)

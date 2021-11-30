@@ -1,0 +1,19 @@
+digraph fst {
+	rankdir=LR;
+	node [shape=point]; start;
+	node [shape=circle]; "A0" [label="A0"];
+	start -> "A0" [label=start];
+	node [shape=circle];
+	"A1" [style=filled, fillcolor=tomato, label="A1"];
+	"A2" [label="A2"];
+	"A3" [label="A3"];
+	node [style=filled, fillcolor=hotpink];
+	"A0" -> "A2" [label="x1/y1"];
+	"A0" -> "A3" [label="x2/y1"];
+	"A1" -> "A2" [label="x1/y2"];
+	"A1" -> "A3" [label="x2/y2"];
+	"A2" -> "A0" [label="x1/y3"];
+	"A2" -> "A3" [label="x2/y1"];
+	"A3" -> "A2" [label="x1/y3"];
+	"A3" -> "A3" [label="x2/y2"];
+}
