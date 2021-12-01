@@ -432,7 +432,7 @@ class SciPyFST:
         recGetNext(self.initState, dict(), [])
         return listOfInSignalsList
 
-    def isContains(self, fst:'SciPyFST'):
+    def isContains_old(self, fst:'SciPyFST'):
         listOfInSignalsList = fst.getTestSignal()
         selfType = 1 if self.isMoore() else 0
         fstType = 1 if fst.isMoore() else 0
@@ -440,6 +440,26 @@ class SciPyFST:
             if self.playFST(inSignalList)[0][selfType:] != fst.playFST(inSignalList)[0][fstType:]:
                 return False
         return True
+
+    def isContains(self, fst:'SciPyFST'):
+        selfType = 1 if self.isMoore() else 0
+        fstType = 1 if fst.isMoore() else 0
+        def recGetNext(curentState, visitedStates:dict, inSignals:list):
+            if visitedStates.get(curentState) is None:
+                visitedStates[curentState] = 1
+                for inSignal in self.inAlphabet:
+                    copyOfInSignals = deepcopy(inSignals)
+                    copyOfInSignals.append(inSignal)
+                    nextCurentState = self.getNextState(curentState, inSignal)
+                    if nextCurentState is None:
+                        return self.playFST(copyOfInSignals)[0][selfType:] == fst.playFST(copyOfInSignals)[0][fstType:]
+                    else:
+                        if not recGetNext(nextCurentState, deepcopy(visitedStates), copyOfInSignals):
+                            return False
+            else:
+                return self.playFST(inSignals)[0][selfType:] == fst.playFST(inSignals)[0][fstType:]
+            return True
+        return recGetNext(self.initState, dict(), [])
 
     def isSimilar(self, fst:'SciPyFST'):
         return self.isContains(fst) and fst.isContains(self)
