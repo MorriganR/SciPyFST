@@ -86,4 +86,4 @@ display(graphviz.Source(fstWithUnreachableStates.toDot(colorOfUnreachableStates=
 
 ### More examples
 
-[github.com/MorriganR/SciPyFST/blob/main/examples/README.md](https://github.com/MorriganR/SciPyFST/blob/main/examples/README.md)
+[nbviewer.org/github/MorriganR/SciPyFST/blob/main/examples/README.ipynb](https://nbviewer.org/github/MorriganR/SciPyFST/blob/main/examples/README.ipynb)
