@@ -153,7 +153,7 @@ outAlphabet_08 = ['y1','y2','y']
 # transitionFunction [ [State, inAlphabet, nextState], ...]
 transitionFunction_08 = [ \
     ['Q1','x1','Q2'], ['Q1','x2','Q1'], ['Q1','x3',None], \
-    ['Q2','x1','Q3'], ['Q2','x2','Q5'], ['Q2','x3',None], \
+    ['Q2','x1','Q3'], ['Q2','x2','Q5'], ['Q2','x3','Q4'], \
     ['Q3','x1',None], ['Q3','x2','Q3'], ['Q3','x3',None], \
     ['Q4','x1','Q1'], ['Q4','x2','Q3'], ['Q4','x3','Q4'], \
     ['Q5','x1','Q3'], ['Q5','x2','Q1'], ['Q5','x3','Q5'] \
@@ -161,7 +161,7 @@ transitionFunction_08 = [ \
 # outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
 outputFunction_08 = [ \
     ['Q1','x1','y1'], ['Q1','x2','y2' ], ['Q1','x3',None], \
-    ['Q2','x1','y2'], ['Q2','x2','y1'], ['Q2','x3',None], \
+    ['Q2','x1','y2'], ['Q2','x2','y1'], ['Q2','x3','y2'], \
     ['Q3','x1',None], ['Q3','x2','y2' ], ['Q3','x3',None], \
     ['Q4','x1','y2'], ['Q4','x2','y1'], ['Q4','x3','y2' ], \
     ['Q5','x1','y2'], ['Q5','x2','y1'], ['Q5','x3','y1'] \
