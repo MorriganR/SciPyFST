@@ -447,10 +447,10 @@ class SciPyFST:
         def recGetNext(curentState, visitedStates:dict, inSignals:list):
             if visitedStates.get(curentState) is None:
                 visitedStates[curentState] = 1
-                for inSignal in self.inAlphabet:
+                for inSignal in fst.inAlphabet:
                     copyOfInSignals = deepcopy(inSignals)
                     copyOfInSignals.append(inSignal)
-                    nextCurentState = self.getNextState(curentState, inSignal)
+                    nextCurentState = fst.getNextState(curentState, inSignal)
                     if nextCurentState is None:
                         return self.playFST(copyOfInSignals)[0][selfType:] == fst.playFST(copyOfInSignals)[0][fstType:]
                     else:
@@ -459,7 +459,7 @@ class SciPyFST:
             else:
                 return self.playFST(inSignals)[0][selfType:] == fst.playFST(inSignals)[0][fstType:]
             return True
-        return recGetNext(self.initState, dict(), [])
+        return recGetNext(fst.initState, dict(), [])
 
     def isSimilar(self, fst:'SciPyFST'):
         return self.isContains(fst) and fst.isContains(self)
