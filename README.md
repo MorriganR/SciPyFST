@@ -1,6 +1,6 @@
 # SciPyFST
 
-The package perform simple operations with FST (Finite-state transducer) and visualize results.
+The package perform simple operations on FST (Finite-state transducer) and visualize results obtained
 
 ## Install
 
@@ -8,7 +8,7 @@ It can be installed from [pypi.org/project/SciPyFST/](https://pypi.org/project/S
 ```
 pip install SciPyFST
 ```
-Development (branch main) version availabel from [test.pypi.org/project/SciPyFST/](https://test.pypi.org/project/SciPyFST/)
+Development (branch main) version is available from [test.pypi.org/project/SciPyFST/](https://test.pypi.org/project/SciPyFST/)
 ```
 pip install -i https://test.pypi.org/simple/ SciPyFST
 ```
