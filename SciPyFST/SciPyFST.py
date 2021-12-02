@@ -432,7 +432,7 @@ class SciPyFST:
         recGetNext(self.initState, dict(), [])
         return listOfInSignalsList
 
-    def isContains_old(self, fst:'SciPyFST'):
+    def _isContains(self, fst:'SciPyFST'):
         listOfInSignalsList = fst.getTestSignal()
         selfType = 1 if self.isMoore() else 0
         fstType = 1 if fst.isMoore() else 0
