@@ -315,10 +315,10 @@ class SciPyFST:
         unreachableStates = self.getUnreachableStates() if colorOfUnreachableStates is not None else []
         if highlightPath is not None:
             hlPathStates = self.playFST(highlightPath)[1]
-            hlPathStatesPair = list(zip(hlPathStates, hlPathStates[1:]))
+            hlPathTransition = list(zip(hlPathStates, highlightPath, hlPathStates[1:]))
         else:
             hlPathStates = []
-            hlPathStatesPair = []
+            hlPathTransition = []
 
         # Dot header
         outString = "digraph {} {{\n\trankdir={};\n\tnode [shape=point]; start;".format(nameGV, rankdirGV)
@@ -362,7 +362,7 @@ class SciPyFST:
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
         # transition
         for (state, inSignal, nextState) in self.transitionFunction:
-            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if (state, nextState) in hlPathStatesPair else ""
+            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if (state, inSignal, nextState) in hlPathTransition else ""
             if nextState is None:
                 nextState = ifNotInDict
             if self.isMoore():
