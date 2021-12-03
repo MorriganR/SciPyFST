@@ -185,8 +185,8 @@ class SciPyFST:
             outStates.append(curentState)
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
             curentState = self.getNextState(curentState, inSignal)#, curentState)
+        outStates.append(curentState)
         if self.isMoore():
-            outStates.append(curentState)
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
 
         return outSignals, outStates
@@ -275,8 +275,16 @@ class SciPyFST:
         wave = "{ \"signal\": [" + waveCLK + waveRST + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
         return wave
 
-    def toDot(self, colorOfUnreachableStates: str = None):
+    def toDot(self, **kwargs):
         """
+        nameGV = 'fst'\n
+        rankdirGV = 'LR'\n
+        colorOfUnreachableStates = 'aqua'\n
+        highlightStates = []\n
+        highlightStatesColor = 'lightblue'\n
+        highlightPath = []\n
+        highlightPathColor = 'red3'\n
+        \n
         !!! DRAFT !!!
         Output example:\n
         digraph fst {\n
@@ -295,38 +303,75 @@ class SciPyFST:
         }
         """
 
+        nameGV = kwargs.pop('nameGV', 'fst')
+        rankdirGV = kwargs.pop('rankdirGV', 'LR')
+        colorOfUnreachableStates = kwargs.pop('colorOfUnreachableStates', None)
+        highlightStates = kwargs.pop('highlightStates', [])
+        highlightStatesColor = kwargs.pop('highlightStatesColor', 'lightblue')
+        highlightPath = kwargs.pop('highlightPath', None)
+        highlightPathColor = kwargs.pop('highlightPathColor', 'red3')
+
         ifNotInDict = '-'
         unreachableStates = self.getUnreachableStates() if colorOfUnreachableStates is not None else []
-        outString = "digraph fst {\n\trankdir=LR;\n\tnode [shape=point]; start;\n\tnode [shape=circle];"
-        if self.isMoore():
-            outString += " \"{initState}\" [label=\"{initState}/{outSignal}\"];".format(
-                initState = str(self.initState), outSignal = self.getOutSignal(self.initState, None, ifNotInDict))
+        if highlightPath is not None:
+            hlPathStates = self.playFST(highlightPath)[1]
+            hlPathStatesPair = list(zip(hlPathStates, hlPathStates[1:]))
         else:
-            outString += " \"{initState}\" [label=\"{initState}\"];".format(initState = str(self.initState))
+            hlPathStates = []
+            hlPathStatesPair = []
+
+        # Dot header
+        outString = "digraph {} {{\n\trankdir={};\n\tnode [shape=point]; start;".format(nameGV, rankdirGV)
+        # InitState
+        outString += "\n\tnode [shape=circle];"
+        nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor) if self.initState in highlightStates else ""
+        nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if self.initState in hlPathStates else ""
+        if self.isMoore():
+            outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}/{outSignal}\"];".format(
+                initState = str(self.initState),
+                outSignal = self.getOutSignal(self.initState, None, ifNotInDict),
+                style = nodeStyle,
+                style2 = nodeStyle2)
+        else:
+            outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}\"];".format(
+                initState = str(self.initState),
+                style = nodeStyle,
+                style2 = nodeStyle2)
         outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
+        # all state
         for state in self.states:
             if state != self.initState:
-                fill = str('style=filled, fillcolor=' + colorOfUnreachableStates + ', ') if state in unreachableStates else ''
+                if state in highlightStates:
+                    nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor)
+                elif state in unreachableStates:
+                    nodeStyle = "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
+                else:
+                    nodeStyle = ""
+                nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
                 if self.isMoore():
-                    outString += "\n\t\"{state}\" [{fill}label=\"{state}/{outSignal}\"];".format(
+                    outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
                         state = state,
-                        fill = fill,
+                        style = nodeStyle,
+                        style2 = nodeStyle2,
                         outSignal = self.getOutSignal(state, None, ifNotInDict))
                 else:
-                    outString += "\n\t\"{state}\" [{fill}label=\"{state}\"];".format(
+                    outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}\"];".format(
                         state = state,
-                        fill = fill)
+                        style = nodeStyle,
+                        style2 = nodeStyle2)
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
+        # transition
         for (state, inSignal, nextState) in self.transitionFunction:
+            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if (state, nextState) in hlPathStatesPair else ""
             if nextState is None:
                 nextState = ifNotInDict
             if self.isMoore():
-                outString += "\n\t\"{state}\" -> \"{nextState}\" [label={inSignal}];".format(
-                    state = str(state), nextState = str(nextState), inSignal = str(inSignal))
+                outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label={inSignal}];".format(
+                    state = str(state), nextState = str(nextState), inSignal = str(inSignal), style = pathStyle)
             else:
-                outString += "\n\t\"{state}\" -> \"{nextState}\" [label=\"{inSignal}/{outSignal}\"];".format(
+                outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label=\"{inSignal}/{outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
-                    outSignal = self.getOutSignal(state, inSignal, ifNotInDict))
+                    outSignal = self.getOutSignal(state, inSignal, ifNotInDict), style = pathStyle)
         outString += "\n}"
         return outString
 

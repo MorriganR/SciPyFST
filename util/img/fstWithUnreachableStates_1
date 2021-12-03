@@ -1,7 +1,8 @@
 digraph fst {
 	rankdir=LR;
 	node [shape=point]; start;
-	node [shape=circle]; "A0" [label="A0"];
+	node [shape=circle];
+	"A0" [label="A0"];
 	start -> "A0" [label=start];
 	node [shape=circle];
 	"A1" [label="A1"];
