@@ -174,6 +174,12 @@ class SciPyFST:
         """
         return True if self.getType() == 'Mealy' else False
 
+    def isFSM(self):
+        """
+        Return True if self.getType() == 'FSM' else False
+        """
+        return True if self.getType() == 'FSM' else False
+
     def getNextState(self, curentState, inSignal, ifNotInDict=None):
         nextSate = self.trFuncDict.get((curentState, inSignal), ifNotInDict)
         if nextSate is None:
@@ -382,7 +388,7 @@ class SciPyFST:
             pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if (state, inSignal, nextState) in hlPathTransition else ""
             if nextState is None:
                 nextState = ifNotInDict
-            if self.isMoore():
+            if self.isMoore() or self.isFSM():
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label={inSignal}];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal), style = pathStyle)
             else:
@@ -419,12 +425,12 @@ class SciPyFST:
             for curentState in self.states:
                 tempVal = self.getNextState(curentState, inSignal)
                 if tempVal is not None:
-                    if self.isMoore():
+                    if self.isMoore() or self.isFSM():
                         outString += " {nextState} |".format(nextState = tempVal)
                     else:
                         outString += " {nextState}/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
                 else:
-                    if self.isMoore():
+                    if self.isMoore() or self.isFSM():
                         outString += " - |"
                     else:
                         outString += " -/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
