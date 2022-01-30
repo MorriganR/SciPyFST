@@ -62,8 +62,6 @@ class SciPyFST:
             else:
                 self.comboStateAndOutDict[curentState, inSignal] = [nextState, self.outFuncDict.get((curentState, inSignal))]
 
-
-
     def __detTypeByOutputFunction(self):
         if self.outputFunction:
             if len(self.outputFunction[0]) == 2:
@@ -72,6 +70,8 @@ class SciPyFST:
         return 'FSM'
 
     def __getStatesFromTransitionAndOutputFunction(self):
+        #if self.isFSM():
+        #    return []
         toOut = []
         if self.initState is not None:
             toOut.append(self.initState)
@@ -93,13 +93,17 @@ class SciPyFST:
     def __getInAlphabetFromTransitionAndOutputFunction(self):
         toOut = []
         for (curentState, inSignal, nextState) in self.transitionFunction:
-            toOut.append(inSignal)
+            if inSignal is not None:
+                toOut.append(inSignal)
         if self.isMealy():
             for (curentState, inSignal, outSignal) in self.outputFunction:
-                toOut.append(inSignal)
+                if inSignal is not None:
+                    toOut.append(inSignal)
         return sorted(dict.fromkeys(toOut))#, key=str)
 
     def __getOutAlphabetFromTransitionAndOutputFunction(self):
+        if self.isFSM():
+            return []
         toOut = []
         if self.isMoore():
             for (curentState, outSignal) in self.outputFunction:
@@ -145,7 +149,8 @@ class SciPyFST:
 
     def deepcopy(self):
         fst = SciPyFST(self.states, self.initState, self.inAlphabet,\
-            self.outAlphabet, self.transitionFunction, self.outputFunction)
+            self.outAlphabet, self.transitionFunction, self.outputFunction,\
+            self.finalStates)
         return fst
 
     def addState(self, state):
@@ -390,7 +395,9 @@ class SciPyFST:
                 nextState = ifNotInDict
             if self.isMoore() or self.isFSM():
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label={inSignal}];".format(
-                    state = str(state), nextState = str(nextState), inSignal = str(inSignal), style = pathStyle)
+                    state = str(state), nextState = str(nextState),
+                    inSignal = str(inSignal) if inSignal is not None else 'ε',
+                    style = pathStyle)
             else:
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label=\"{inSignal}/{outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
