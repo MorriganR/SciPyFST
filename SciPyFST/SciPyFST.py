@@ -1,7 +1,15 @@
 from copy import deepcopy
 
 class SciPyFST:
-    def __init__(self, states:list=[], initState=None, inAlphabet:list=[], outAlphabet:list=[], transitionFunction:list=[], outputFunction:list=[]):
+    def __init__(self,
+                states:list=[],
+                initState=None,
+                inAlphabet:list=[],
+                outAlphabet:list=[],
+                transitionFunction:list=[],
+                outputFunction:list=[],
+                finalStates:list=[],
+        ):
         self.states = sorted(dict.fromkeys(states))#, key=str)
         """ states = [0,1,2] """
 
@@ -25,6 +33,9 @@ class SciPyFST:
         outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]\n
         outputFunction = [ [0,1,0], [1,1,0], [2,2,2]]
         """
+
+        self.finalStates = sorted(dict.fromkeys(finalStates))#, key=str)
+        """ finalStates = [0,1,2] """
 
         self.__type = self.__detTypeByOutputFunction()
 
@@ -326,6 +337,7 @@ class SciPyFST:
         outString += "\n\tnode [shape=circle];"
         nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor) if self.initState in highlightStates else ""
         nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if self.initState in hlPathStates else ""
+        nodeStyle3 = "shape=doublecircle, " if self.initState in self.finalStates else ""
         if self.isMoore():
             outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}/{outSignal}\"];".format(
                 initState = str(self.initState),
@@ -333,20 +345,24 @@ class SciPyFST:
                 style = nodeStyle,
                 style2 = nodeStyle2)
         else:
-            outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}\"];".format(
+            outString += "\n\t\"{initState}\" [{style3}{style}{style2}label=\"{initState}\"];".format(
                 initState = str(self.initState),
+                style3 = nodeStyle3,
                 style = nodeStyle,
                 style2 = nodeStyle2)
         outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
         # all state
         for state in self.states:
             if state != self.initState:
-                if state in highlightStates:
-                    nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor)
-                elif state in unreachableStates:
-                    nodeStyle = "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
+                if state in self.finalStates:
+                    nodeStyle = "shape=doublecircle, " # TODO add fill to final states
                 else:
                     nodeStyle = ""
+                if state in highlightStates:
+                    nodeStyle += "style=filled, fillcolor={}, ".format(highlightStatesColor)
+                elif state in unreachableStates:
+                    nodeStyle += "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
+
                 nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
                 if self.isMoore():
                     outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
