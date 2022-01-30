@@ -69,7 +69,7 @@ class SciPyFST:
             if len(self.outputFunction[0]) == 2:
                 return 'Moore'
             return 'Mealy'
-        return None
+        return 'FSM'
 
     def __getStatesFromTransitionAndOutputFunction(self):
         toOut = []
@@ -126,6 +126,7 @@ class SciPyFST:
 
     def setType(self, typeString='Moore'):
         """
+        TODO broken with adding FSM
         Set FST type - "Moore" or "Mealy"
         """
         if typeString in ['Moore', 'Mealy']:

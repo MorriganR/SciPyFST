@@ -72,6 +72,7 @@ jobs:
   build-and-publish-pypi:
     runs-on: ubuntu-20.04
     needs: run-tests
+    if: ${{ github.event_name == 'release' && github.repository_owner == 'MorriganR' }}
     steps:
 
     - name: Checkout
