@@ -185,6 +185,15 @@ class SciPyFST:
         """
         return True if self.getType() == 'FSM' else False
 
+    def withEpsilon(self):
+        """
+        Return True if epsilon(None) in transitionFunction(inAlphabet)
+        """
+        for (state, inSignal, nextState) in self.transitionFunction:
+            if inSignal is None:
+                return True
+        return False
+
     def getNextState(self, curentState, inSignal, ifNotInDict=None):
         nextSate = self.trFuncDict.get((curentState, inSignal), ifNotInDict)
         if nextSate is None:
@@ -427,8 +436,8 @@ class SciPyFST:
         for state in self.states:
             outString += ":---:|"
         outString += "\n"
-        for inSignal in self.inAlphabet:
-            outString += "| {inSignal} |".format(inSignal = inSignal)
+        for inSignal in self.inAlphabet + [None] if self.withEpsilon() else self.inAlphabet:
+            outString += "| {inSignal} |".format(inSignal = inSignal if inSignal is not None else 'ε' )
             for curentState in self.states:
                 tempVal = self.getNextState(curentState, inSignal)
                 if tempVal is not None:
