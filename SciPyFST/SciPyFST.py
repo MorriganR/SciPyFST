@@ -45,7 +45,13 @@ class SciPyFST:
 
         self.trFuncDict = dict()
         for (curentState, inSignal, nextState) in self.transitionFunction:
-            self.trFuncDict[curentState, inSignal] = nextState
+            if (curentState, inSignal) in self.trFuncDict:
+                temp = self.trFuncDict[curentState, inSignal] \
+                    if isinstance(self.trFuncDict[curentState, inSignal], list) \
+                    else [self.trFuncDict[curentState, inSignal]]
+                self.trFuncDict[curentState, inSignal] = temp + [nextState]
+            else:
+                self.trFuncDict[curentState, inSignal] = nextState
 
         self.outFuncDict = dict()
         if self.isMoore():
@@ -439,7 +445,9 @@ class SciPyFST:
         for inSignal in self.inAlphabet + [None] if self.withEpsilon() else self.inAlphabet:
             outString += "| {inSignal} |".format(inSignal = inSignal if inSignal is not None else 'ε' )
             for curentState in self.states:
-                tempVal = self.getNextState(curentState, inSignal)
+                tempVal = ', '.join(self.getNextState(curentState, inSignal)) \
+                    if isinstance(self.getNextState(curentState, inSignal), list) \
+                    else self.getNextState(curentState, inSignal)
                 if tempVal is not None:
                     if self.isMoore() or self.isFSM():
                         outString += " {nextState} |".format(nextState = tempVal)
