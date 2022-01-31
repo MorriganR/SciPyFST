@@ -229,6 +229,24 @@ class SciPyFST:
 
         return outSignals, outStates
 
+    def playFSM(self, inSignals: list):
+        curentStates = [self.initState,]
+        for inSignal in inSignals:
+            nextStates = []
+            nextStatesOverEpsilon = []
+            for curentState in curentStates:
+                nextStates += self.getNextState(curentState, inSignal) \
+                    if isinstance(self.getNextState(curentState, inSignal), list) \
+                    else [self.getNextState(curentState, inSignal),]
+            for state in nextStates:
+                nextStatesOverEpsilon += self.getNextState(state, None) \
+                    if isinstance(self.getNextState(state, None), list) \
+                    else [self.getNextState(state, None),]
+            curentStates = deepcopy(nextStates + nextStatesOverEpsilon)
+        if set(curentStates) & set(self.finalStates):
+            return True
+        return False
+
     def playToWave(self, inSignals: list, hscale=1, useLogic=False):
         """
         { "signal": [
