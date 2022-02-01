@@ -206,6 +206,18 @@ class SciPyFST:
             return ifNotInDict
         return nextSate
 
+    def getNextStates(self, curentStates, inSignal, ifNotInDict=None):
+        """
+        return set of next states for set of curent states
+        """
+        nextSate = self.trFuncDict.get((curentStates, inSignal), None)
+        if nextSate is None:
+            return [ifNotInDict,]
+        if isinstance(nextSate, list):
+            return nextSate
+        else:
+            return [nextSate,]
+
     def getOutSignal(self, curentState, inSignal, ifNotInDict=None):
         if self.isMoore():
             outSignal = self.outFuncDict.get(curentState, ifNotInDict)
@@ -229,21 +241,39 @@ class SciPyFST:
 
         return outSignals, outStates
 
-    def playFSM(self, inSignals: list):
-        curentStates = [self.initState,]
+    def getEpsilonClosure(self, states):
+        """
+        return ε-closure of a state or set of states
+        https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton#%CE%B5-closure_of_a_state_or_set_of_states
+        """
+        inStates = set(states) if isinstance(states, (list, set)) else set([states,])
+        while True:
+            nextStates = set()
+            for state in inStates:
+                nextStates.update(set(self.getNextStates(state, None)))
+            if set(nextStates).issubset(inStates):
+                break
+            inStates.update(nextStates)
+        if isinstance(states, set):
+            return inStates
+        return list(inStates)
+
+    def playFSM(self, inSignals: list, debug=None):
+        if debug: print( "-->  Start print debug info for playFSM():" )
+        curentStates = set(self.initState) \
+            if isinstance(self.initState, (list, set)) \
+            else set([self.initState,])
         for inSignal in inSignals:
-            nextStates = []
-            nextStatesOverEpsilon = []
+            if debug: print( "-->    curent state(s): " + str(curentStates) )
+            if debug: print( "-->    input signal: " + str(inSignal) )
+            nextStates = set()
             for curentState in curentStates:
-                nextStates += self.getNextState(curentState, inSignal) \
-                    if isinstance(self.getNextState(curentState, inSignal), list) \
-                    else [self.getNextState(curentState, inSignal),]
-            for state in nextStates:
-                nextStatesOverEpsilon += self.getNextState(state, None) \
-                    if isinstance(self.getNextState(state, None), list) \
-                    else [self.getNextState(state, None),]
-            curentStates = deepcopy(nextStates + nextStatesOverEpsilon)
-        if set(curentStates) & set(self.finalStates):
+                nextStates.update(self.getNextStates(curentState, inSignal))
+            if debug: print( "-->      next state(s): " + str(nextStates) )
+            curentStates = self.getEpsilonClosure(nextStates)
+            if debug: print( "-->      + ε-closure: " + str(curentStates) )
+        if curentStates & set(self.finalStates):
+            if debug: print( "-->  accepting state(s): " + str(curentStates & set(self.finalStates)) )
             return True
         return False
 
