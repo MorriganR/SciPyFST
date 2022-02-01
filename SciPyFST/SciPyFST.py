@@ -208,15 +208,19 @@ class SciPyFST:
 
     def getNextStates(self, curentStates, inSignal, ifNotInDict=None):
         """
-        return set of next states for set of curent states
+        return set of next states for set of curent states & input signal,
+        ε-closure is NOT INCLUDED!
+        if input signal == None return set of ε-accessible in one step states
         """
-        nextSate = self.trFuncDict.get((curentStates, inSignal), None)
-        if nextSate is None:
-            return [ifNotInDict,]
-        if isinstance(nextSate, list):
-            return nextSate
-        else:
-            return [nextSate,]
+        states = set(curentStates) if isinstance(curentStates, (list, set)) else set([curentStates,])
+        nextStates = set()
+        for state in states:
+            if (state, inSignal) in self.trFuncDict:
+                temp = self.trFuncDict.get((state, inSignal))
+                nextStates.update( temp if isinstance(temp, (list, set)) else set([temp,]) )
+            elif inSignal is not None:
+                nextStates.update( [None,] )
+        return nextStates
 
     def getOutSignal(self, curentState, inSignal, ifNotInDict=None):
         if self.isMoore():
@@ -248,15 +252,11 @@ class SciPyFST:
         """
         inStates = set(states) if isinstance(states, (list, set)) else set([states,])
         while True:
-            nextStates = set()
-            for state in inStates:
-                nextStates.update(set(self.getNextStates(state, None)))
+            nextStates = self.getNextStates(inStates, None)
             if set(nextStates).issubset(inStates):
                 break
             inStates.update(nextStates)
-        if isinstance(states, set):
-            return inStates
-        return list(inStates)
+        return inStates
 
     def playFSM(self, inSignals: list, debug=None):
         if debug: print( "-->  Start print debug info for playFSM():" )
@@ -266,12 +266,10 @@ class SciPyFST:
         for inSignal in inSignals:
             if debug: print( "-->    curent state(s): " + str(curentStates) )
             if debug: print( "-->    input signal: " + str(inSignal) )
-            nextStates = set()
-            for curentState in curentStates:
-                nextStates.update(self.getNextStates(curentState, inSignal))
+            nextStates = self.getNextStates(curentStates, inSignal)
             if debug: print( "-->      next state(s): " + str(nextStates) )
             curentStates = self.getEpsilonClosure(nextStates)
-            if debug: print( "-->      + ε-closure: " + str(curentStates) )
+            if debug: print( "-->        + ε-closure: " + str(curentStates) )
         if curentStates & set(self.finalStates):
             if debug: print( "-->  accepting state(s): " + str(curentStates & set(self.finalStates)) )
             return True
