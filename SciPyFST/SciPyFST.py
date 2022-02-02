@@ -259,19 +259,21 @@ class SciPyFST:
         return inStates
 
     def playFSM(self, inSignals: list, debug=None):
-        if debug: print( "-->  Start print debug info for playFSM():" )
+        def __debug(a):
+            if debug: print("--> " + a)
+        __debug( "Start print debug info for playFSM():" )
         curentStates = set(self.initState) \
             if isinstance(self.initState, (list, set)) \
             else set([self.initState,])
         for inSignal in inSignals:
-            if debug: print( "-->    curent state(s): " + str(curentStates) )
-            if debug: print( "-->    input signal: " + str(inSignal) )
+            __debug( "  curent state(s): " + str(curentStates) )
+            __debug( "  input signal: " + str(inSignal) )
             nextStates = self.getNextStates(curentStates, inSignal)
-            if debug: print( "-->      next state(s): " + str(nextStates) )
+            __debug( "    next state(s): " + str(nextStates) )
             curentStates = self.getEpsilonClosure(nextStates)
-            if debug: print( "-->        + ε-closure: " + str(curentStates) )
+            __debug( "      + ε-closure: " + str(curentStates) )
         if curentStates & set(self.finalStates):
-            if debug: print( "-->  accepting state(s): " + str(curentStates & set(self.finalStates)) )
+            __debug( "accepting state(s): " + str(curentStates & set(self.finalStates)) )
             return True
         return False
 
