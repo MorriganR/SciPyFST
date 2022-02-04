@@ -275,6 +275,7 @@ class SciPyFST:
         if curentStates & set(self.finalStates):
             __debug( "accepting state(s): " + str(curentStates & set(self.finalStates)) )
             return True
+        __debug( "last states: " + str( curentStates ) + ", all accepting states: " + str(self.finalStates) )
         return False
 
     def playToWave(self, inSignals: list, hscale=1, useLogic=False):
@@ -365,6 +366,7 @@ class SciPyFST:
         """
         nameGV = 'fst'\n
         rankdirGV = 'LR'\n
+        colorOfNoneState = None\n
         colorOfUnreachableStates = 'aqua'\n
         highlightStates = []\n
         highlightStatesColor = 'lightblue'\n
@@ -391,6 +393,7 @@ class SciPyFST:
 
         nameGV = kwargs.pop('nameGV', 'fst')
         rankdirGV = kwargs.pop('rankdirGV', 'LR')
+        colorOfNoneState = kwargs.pop('colorOfNoneState', None)
         colorOfUnreachableStates = kwargs.pop('colorOfUnreachableStates', None)
         highlightStates = kwargs.pop('highlightStates', [])
         highlightStatesColor = kwargs.pop('highlightStatesColor', 'lightblue')
@@ -426,7 +429,7 @@ class SciPyFST:
                 style = nodeStyle,
                 style2 = nodeStyle2)
         outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
-        # all state
+        # all states
         for state in self.states:
             if state != self.initState:
                 if state in self.finalStates:
@@ -450,10 +453,15 @@ class SciPyFST:
                         state = state,
                         style = nodeStyle,
                         style2 = nodeStyle2)
+        # None state
+        if colorOfNoneState is not None:
+            outString += "\n\t\"-\" [style=filled, fillcolor={}, label=\"fail\"];".format(colorOfNoneState)
+
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
         # transition
         for (state, inSignal, nextState) in self.transitionFunction:
-            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if (state, inSignal, nextState) in hlPathTransition else ""
+            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) \
+                if (state, inSignal, nextState) in hlPathTransition else ""
             if nextState is None:
                 nextState = ifNotInDict
             if self.isMoore() or self.isFSM():
