@@ -231,9 +231,9 @@ class SciPyFST:
             return ifNotInDict
         return outSignal
 
-    def playFST(self, inSignals: list):
+    def playFST(self, inSignals: list, startState=None):
         outSignals = []
-        curentState = self.initState
+        curentState = self.initState if startState is None else startState
         outStates = []
         for inSignal in inSignals:
             outStates.append(curentState)
@@ -242,7 +242,7 @@ class SciPyFST:
         outStates.append(curentState)
         if self.isMoore():
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
-
+            return outSignals[1:], outStates
         return outSignals, outStates
 
     def getEpsilonClosure(self, states):
@@ -579,16 +579,12 @@ class SciPyFST:
 
     def _isContains(self, fst:'SciPyFST'):
         listOfInSignalsList = fst.getTestSignal()
-        selfType = 1 if self.isMoore() else 0
-        fstType = 1 if fst.isMoore() else 0
         for inSignalList in listOfInSignalsList:
-            if self.playFST(inSignalList)[0][selfType:] != fst.playFST(inSignalList)[0][fstType:]:
+            if self.playFST(inSignalList)[0] != fst.playFST(inSignalList)[0]:
                 return False
         return True
 
     def isContains(self, fst:'SciPyFST'):
-        selfType = 1 if self.isMoore() else 0
-        fstType = 1 if fst.isMoore() else 0
         def recGetNext(curentState, visitedStates:dict, inSignals:list):
             if visitedStates.get(curentState) is None:
                 visitedStates[curentState] = 1
@@ -597,12 +593,12 @@ class SciPyFST:
                     copyOfInSignals.append(inSignal)
                     nextCurentState = fst.getNextState(curentState, inSignal)
                     if nextCurentState is None:
-                        return self.playFST(copyOfInSignals)[0][selfType:] == fst.playFST(copyOfInSignals)[0][fstType:]
+                        return self.playFST(copyOfInSignals)[0] == fst.playFST(copyOfInSignals)[0]
                     else:
                         if not recGetNext(nextCurentState, deepcopy(visitedStates), copyOfInSignals):
                             return False
             else:
-                return self.playFST(inSignals)[0][selfType:] == fst.playFST(inSignals)[0][fstType:]
+                return self.playFST(inSignals)[0] == fst.playFST(inSignals)[0]
             return True
         return recGetNext(fst.initState, dict(), [])
 
