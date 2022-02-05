@@ -1,7 +1,15 @@
 from copy import deepcopy
 
 class SciPyFST:
-    def __init__(self, states:list=[], initState=None, inAlphabet:list=[], outAlphabet:list=[], transitionFunction:list=[], outputFunction:list=[]):
+    def __init__(self,
+                states:list=[],
+                initState=None,
+                inAlphabet:list=[],
+                outAlphabet:list=[],
+                transitionFunction:list=[],
+                outputFunction:list=[],
+                finalStates:list=[],
+        ):
         self.states = sorted(dict.fromkeys(states))#, key=str)
         """ states = [0,1,2] """
 
@@ -26,6 +34,9 @@ class SciPyFST:
         outputFunction = [ [0,1,0], [1,1,0], [2,2,2]]
         """
 
+        self.finalStates = sorted(dict.fromkeys(finalStates))#, key=str)
+        """ finalStates = [0,1,2] """
+
         self.__type = self.__detTypeByOutputFunction()
 
         self.states = sorted(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))#, key=str)
@@ -34,7 +45,13 @@ class SciPyFST:
 
         self.trFuncDict = dict()
         for (curentState, inSignal, nextState) in self.transitionFunction:
-            self.trFuncDict[curentState, inSignal] = nextState
+            if (curentState, inSignal) in self.trFuncDict:
+                temp = self.trFuncDict[curentState, inSignal] \
+                    if isinstance(self.trFuncDict[curentState, inSignal], list) \
+                    else [self.trFuncDict[curentState, inSignal]]
+                self.trFuncDict[curentState, inSignal] = temp + [nextState]
+            else:
+                self.trFuncDict[curentState, inSignal] = nextState
 
         self.outFuncDict = dict()
         if self.isMoore():
@@ -51,16 +68,16 @@ class SciPyFST:
             else:
                 self.comboStateAndOutDict[curentState, inSignal] = [nextState, self.outFuncDict.get((curentState, inSignal))]
 
-
-
     def __detTypeByOutputFunction(self):
         if self.outputFunction:
             if len(self.outputFunction[0]) == 2:
                 return 'Moore'
             return 'Mealy'
-        return None
+        return 'FSM'
 
     def __getStatesFromTransitionAndOutputFunction(self):
+        #if self.isFSM():
+        #    return []
         toOut = []
         if self.initState is not None:
             toOut.append(self.initState)
@@ -82,13 +99,17 @@ class SciPyFST:
     def __getInAlphabetFromTransitionAndOutputFunction(self):
         toOut = []
         for (curentState, inSignal, nextState) in self.transitionFunction:
-            toOut.append(inSignal)
+            if inSignal is not None:
+                toOut.append(inSignal)
         if self.isMealy():
             for (curentState, inSignal, outSignal) in self.outputFunction:
-                toOut.append(inSignal)
+                if inSignal is not None:
+                    toOut.append(inSignal)
         return sorted(dict.fromkeys(toOut))#, key=str)
 
     def __getOutAlphabetFromTransitionAndOutputFunction(self):
+        if self.isFSM():
+            return []
         toOut = []
         if self.isMoore():
             for (curentState, outSignal) in self.outputFunction:
@@ -115,6 +136,7 @@ class SciPyFST:
 
     def setType(self, typeString='Moore'):
         """
+        TODO broken with adding FSM
         Set FST type - "Moore" or "Mealy"
         """
         if typeString in ['Moore', 'Mealy']:
@@ -133,7 +155,8 @@ class SciPyFST:
 
     def deepcopy(self):
         fst = SciPyFST(self.states, self.initState, self.inAlphabet,\
-            self.outAlphabet, self.transitionFunction, self.outputFunction)
+            self.outAlphabet, self.transitionFunction, self.outputFunction,\
+            self.finalStates)
         return fst
 
     def addState(self, state):
@@ -162,11 +185,42 @@ class SciPyFST:
         """
         return True if self.getType() == 'Mealy' else False
 
+    def isFSM(self):
+        """
+        Return True if self.getType() == 'FSM' else False
+        """
+        return True if self.getType() == 'FSM' else False
+
+    def withEpsilon(self):
+        """
+        Return True if epsilon(None) in transitionFunction(inAlphabet)
+        """
+        for (state, inSignal, nextState) in self.transitionFunction:
+            if inSignal is None:
+                return True
+        return False
+
     def getNextState(self, curentState, inSignal, ifNotInDict=None):
         nextSate = self.trFuncDict.get((curentState, inSignal), ifNotInDict)
         if nextSate is None:
             return ifNotInDict
         return nextSate
+
+    def getNextStates(self, curentStates, inSignal, ifNotInDict=None):
+        """
+        return set of next states for set of curent states & input signal,
+        ε-closure is NOT INCLUDED!
+        if input signal == None return set of ε-accessible in one step states
+        """
+        states = set(curentStates) if isinstance(curentStates, (list, set)) else set([curentStates,])
+        nextStates = set()
+        for state in states:
+            if (state, inSignal) in self.trFuncDict:
+                temp = self.trFuncDict.get((state, inSignal))
+                nextStates.update( temp if isinstance(temp, (list, set)) else set([temp,]) )
+            elif inSignal is not None:
+                nextStates.update( [None,] )
+        return nextStates
 
     def getOutSignal(self, curentState, inSignal, ifNotInDict=None):
         if self.isMoore():
@@ -190,6 +244,39 @@ class SciPyFST:
             outSignals.append(self.getOutSignal(curentState, inSignal, -1))
 
         return outSignals, outStates
+
+    def getEpsilonClosure(self, states):
+        """
+        return ε-closure of a state or set of states
+        https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton#%CE%B5-closure_of_a_state_or_set_of_states
+        """
+        inStates = set(states) if isinstance(states, (list, set)) else set([states,])
+        while True:
+            nextStates = self.getNextStates(inStates, None)
+            if set(nextStates).issubset(inStates):
+                break
+            inStates.update(nextStates)
+        return inStates
+
+    def playFSM(self, inSignals: list, debug=None):
+        def __debug(a):
+            if debug: print("--> " + a)
+        __debug( "Start print debug info for playFSM():" )
+        curentStates = set(self.initState) \
+            if isinstance(self.initState, (list, set)) \
+            else set([self.initState,])
+        for inSignal in inSignals:
+            __debug( "  curent state(s): " + str(curentStates) )
+            __debug( "  input signal: " + str(inSignal) )
+            nextStates = self.getNextStates(curentStates, inSignal)
+            __debug( "    next state(s): " + str(nextStates) )
+            curentStates = self.getEpsilonClosure(nextStates)
+            __debug( "      + ε-closure: " + str(curentStates) )
+        if curentStates & set(self.finalStates):
+            __debug( "accepting state(s): " + str(curentStates & set(self.finalStates)) )
+            return True
+        __debug( "last states: " + str( curentStates ) + ", all accepting states: " + str(self.finalStates) )
+        return False
 
     def playToWave(self, inSignals: list, hscale=1, useLogic=False):
         """
@@ -279,6 +366,7 @@ class SciPyFST:
         """
         nameGV = 'fst'\n
         rankdirGV = 'LR'\n
+        colorOfNoneState = None\n
         colorOfUnreachableStates = 'aqua'\n
         highlightStates = []\n
         highlightStatesColor = 'lightblue'\n
@@ -305,6 +393,7 @@ class SciPyFST:
 
         nameGV = kwargs.pop('nameGV', 'fst')
         rankdirGV = kwargs.pop('rankdirGV', 'LR')
+        colorOfNoneState = kwargs.pop('colorOfNoneState', None)
         colorOfUnreachableStates = kwargs.pop('colorOfUnreachableStates', None)
         highlightStates = kwargs.pop('highlightStates', [])
         highlightStatesColor = kwargs.pop('highlightStatesColor', 'lightblue')
@@ -326,6 +415,7 @@ class SciPyFST:
         outString += "\n\tnode [shape=circle];"
         nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor) if self.initState in highlightStates else ""
         nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if self.initState in hlPathStates else ""
+        nodeStyle3 = "shape=doublecircle, " if self.initState in self.finalStates else ""
         if self.isMoore():
             outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}/{outSignal}\"];".format(
                 initState = str(self.initState),
@@ -333,20 +423,21 @@ class SciPyFST:
                 style = nodeStyle,
                 style2 = nodeStyle2)
         else:
-            outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}\"];".format(
+            outString += "\n\t\"{initState}\" [{style3}{style}{style2}label=\"{initState}\"];".format(
                 initState = str(self.initState),
+                style3 = nodeStyle3,
                 style = nodeStyle,
                 style2 = nodeStyle2)
         outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
-        # all state
+        # all states
         for state in self.states:
             if state != self.initState:
+                nodeStyle = "shape=doublecircle, " if state in self.finalStates else ""
                 if state in highlightStates:
-                    nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor)
+                    nodeStyle += "style=filled, fillcolor={}, ".format(highlightStatesColor)
                 elif state in unreachableStates:
-                    nodeStyle = "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
-                else:
-                    nodeStyle = ""
+                    nodeStyle += "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
+
                 nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
                 if self.isMoore():
                     outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
@@ -359,15 +450,22 @@ class SciPyFST:
                         state = state,
                         style = nodeStyle,
                         style2 = nodeStyle2)
+        # None state
+        if colorOfNoneState is not None:
+            outString += "\n\t\"-\" [style=filled, fillcolor={}, label=\"fail\"];".format(colorOfNoneState)
+
         outString += "\n\tnode [style=filled, fillcolor=hotpink];"
         # transition
         for (state, inSignal, nextState) in self.transitionFunction:
-            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if (state, inSignal, nextState) in hlPathTransition else ""
+            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) \
+                if (state, inSignal, nextState) in hlPathTransition else ""
             if nextState is None:
                 nextState = ifNotInDict
-            if self.isMoore():
+            if self.isMoore() or self.isFSM():
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label={inSignal}];".format(
-                    state = str(state), nextState = str(nextState), inSignal = str(inSignal), style = pathStyle)
+                    state = str(state), nextState = str(nextState),
+                    inSignal = str(inSignal) if inSignal is not None else 'ε',
+                    style = pathStyle)
             else:
                 outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label=\"{inSignal}/{outSignal}\"];".format(
                     state = str(state), nextState = str(nextState), inSignal = str(inSignal),
@@ -397,17 +495,19 @@ class SciPyFST:
         for state in self.states:
             outString += ":---:|"
         outString += "\n"
-        for inSignal in self.inAlphabet:
-            outString += "| {inSignal} |".format(inSignal = inSignal)
+        for inSignal in self.inAlphabet + [None] if self.withEpsilon() else self.inAlphabet:
+            outString += "| {inSignal} |".format(inSignal = inSignal if inSignal is not None else 'ε' )
             for curentState in self.states:
-                tempVal = self.getNextState(curentState, inSignal)
+                tempVal = ', '.join(self.getNextState(curentState, inSignal)) \
+                    if isinstance(self.getNextState(curentState, inSignal), list) \
+                    else self.getNextState(curentState, inSignal)
                 if tempVal is not None:
-                    if self.isMoore():
+                    if self.isMoore() or self.isFSM():
                         outString += " {nextState} |".format(nextState = tempVal)
                     else:
                         outString += " {nextState}/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
                 else:
-                    if self.isMoore():
+                    if self.isMoore() or self.isFSM():
                         outString += " - |"
                     else:
                         outString += " -/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
