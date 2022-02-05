@@ -432,10 +432,7 @@ class SciPyFST:
         # all states
         for state in self.states:
             if state != self.initState:
-                if state in self.finalStates:
-                    nodeStyle = "shape=doublecircle, " # TODO add fill to final states
-                else:
-                    nodeStyle = ""
+                nodeStyle = "shape=doublecircle, " if state in self.finalStates else ""
                 if state in highlightStates:
                     nodeStyle += "style=filled, fillcolor={}, ".format(highlightStatesColor)
                 elif state in unreachableStates:
