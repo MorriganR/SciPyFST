@@ -1,1 +1,2 @@
-from .SciPyFST import *
+from .fst import *
+#from . import sftUtils

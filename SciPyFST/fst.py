@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-class SciPyFST:
+class fst:
     def __init__(self,
                 states:list=[],
                 initState=None,
@@ -154,10 +154,10 @@ class SciPyFST:
         return False
 
     def deepcopy(self):
-        fst = SciPyFST(self.states, self.initState, self.inAlphabet,\
+        fstOut = fst(self.states, self.initState, self.inAlphabet,\
             self.outAlphabet, self.transitionFunction, self.outputFunction,\
             self.finalStates)
-        return fst
+        return fstOut
 
     def addState(self, state):
         if state not in self.states:
@@ -278,242 +278,6 @@ class SciPyFST:
         __debug( "last states: " + str( curentStates ) + ", all accepting states: " + str(self.finalStates) )
         return False
 
-    def playToWave(self, inSignals: list, hscale=1, useLogic=False):
-        """
-        { "signal": [
-        { "name": "CLK",  "wave": "p......." },
-        { "name": "CMD",  "wave": "x.3x=x4x=x=x=x=x", "data": ["RAS", "NOP"] },
-        { "name": "STT",  "wave": "x.=x..=x........", "data": "ROW COL" }
-        { "name": "OUT",  "wave": "z.......0.1010z.", "data": "ROW COL" }
-        ]}
-        """
-        useLogicForStates = False
-        curentState = self.initState
-        waveCLK = "{ \"name\": \"CLK\",  \"wave\": \"P."
-        waveRST = "{ \"name\": \"RST\",  \"wave\": \"10"
-        waveCMD = "{ \"name\": \"CMD\",  \"wave\": \"zz"
-        dataCMD = "\", \"data\": ["
-        waveSTT = "{ \"name\": \"STT\",  \"wave\": \"x"
-        dataSTT = "\", \"data\": ["
-        waveOUT = "{ \"name\": \"OUT\",  \"wave\": \"x"
-        dataOUT = "\", \"data\": ["
-        prefixCMD = ""
-        prefixSTT = ""
-        prefixOUT = ""
-        oldCMD = None
-        oldSTT = None
-        oldOUT = None
-        # fix state after "reset"
-        if self.isMealy():
-            if useLogicForStates and useLogic and curentState in [0, 1]:
-                waveSTT += str(curentState)
-            else:
-                waveSTT += "="
-                dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = curentState)
-                prefixSTT = ", "
-            oldSTT = curentState
-            waveOUT += "x"
-
-        # play FST and draw Wave
-        for inSignal in inSignals:
-            waveCLK += "."
-            waveRST += "."
-            # Draw inSignal - CMD
-            if oldCMD == inSignal:
-                waveCMD += "."
-            else:
-                if useLogic and inSignal in [0, 1]:
-                    waveCMD += str(inSignal)
-                else:
-                    waveCMD += "="
-                    dataCMD += "{prefix}\"{val}\"".format(prefix = prefixCMD, val = str(inSignal))
-                    prefixCMD = ", "
-            # Draw States - STT
-            if oldSTT == curentState:
-                waveSTT += "."
-            else:
-                if useLogicForStates and useLogic and curentState in [0, 1]:
-                    waveSTT += str(curentState)
-                else:
-                    waveSTT += "="
-                    dataSTT += "{prefix}\"{val}\"".format(prefix = prefixSTT, val = str(curentState))
-                    prefixSTT = ", "
-            # Draw outSignal - OUT
-            curentOUT = self.getOutSignal(curentState, inSignal, '...')
-            if oldOUT == curentOUT:
-                waveOUT += "."
-            else:
-                if useLogic and curentOUT in [0, 1]:
-                    waveOUT += str(curentOUT)
-                else:
-                    waveOUT += "="
-                    dataOUT += "{prefix}\"{val}\"".format(prefix = prefixOUT, val = str(curentOUT))
-                    prefixOUT = ", "
-            # keep old value
-            oldCMD = inSignal
-            oldSTT = curentState
-            oldOUT = curentOUT
-            curentState = self.getNextState(curentState, inSignal, curentState)
-        waveCLK += "\" },"
-        waveRST += "\" },"
-        waveCMD += dataCMD + "],\"phase\":" + str(0.85 * hscale) + "},"
-        waveSTT += dataSTT + "] },"
-        waveOUT += dataOUT + "],\"phase\":" + ( str(-0.2 * hscale) if self.isMealy() else "0" ) + "}"
-        wave = "{ \"signal\": [" + waveCLK + waveRST + waveCMD + waveSTT + waveOUT + "],\"config\":{\"hscale\":" + str(hscale) + "}}"
-        return wave
-
-    def toDot(self, **kwargs):
-        """
-        nameGV = 'fst'\n
-        rankdirGV = 'LR'\n
-        colorOfNoneState = None\n
-        colorOfUnreachableStates = 'aqua'\n
-        highlightStates = []\n
-        highlightStatesColor = 'lightblue'\n
-        highlightPath = []\n
-        highlightPathColor = 'red3'\n
-        \n
-        !!! DRAFT !!!
-        Output example:\n
-        digraph fst {\n
-            rankdir=LR;\n
-            node [shape = point ]; none\n
-            node [shape = doublecircle]; 0; # initState\n
-            none -> 0;\n
-            node [shape = circle]; 0 1; # states\n
-            node [style=filled, fillcolor=red];\n
-            0 -> 1 [ label = 2 ]; # State -> nextState [ label = "inAlphabet" ]\n
-            0 -> 0 [ label = 1 ];\n
-            1 -> 0 [ label = 0 ];\n
-            1 -> 2 [ label = 0 ];\n
-            2 -> 1 [ label = 2 ];\n
-            2 -> 2 [ label = 0 ];
-        }
-        """
-
-        nameGV = kwargs.pop('nameGV', 'fst')
-        rankdirGV = kwargs.pop('rankdirGV', 'LR')
-        colorOfNoneState = kwargs.pop('colorOfNoneState', None)
-        colorOfUnreachableStates = kwargs.pop('colorOfUnreachableStates', None)
-        highlightStates = kwargs.pop('highlightStates', [])
-        highlightStatesColor = kwargs.pop('highlightStatesColor', 'lightblue')
-        highlightPath = kwargs.pop('highlightPath', None)
-        highlightPathColor = kwargs.pop('highlightPathColor', 'red3')
-
-        ifNotInDict = '-'
-        unreachableStates = self.getUnreachableStates() if colorOfUnreachableStates is not None else []
-        if highlightPath is not None:
-            hlPathStates = self.playFST(highlightPath)[1]
-            hlPathTransition = list(zip(hlPathStates, highlightPath, hlPathStates[1:]))
-        else:
-            hlPathStates = []
-            hlPathTransition = []
-
-        # Dot header
-        outString = "digraph {} {{\n\trankdir={};\n\tnode [shape=point]; start;".format(nameGV, rankdirGV)
-        # InitState
-        outString += "\n\tnode [shape=circle];"
-        nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor) if self.initState in highlightStates else ""
-        nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if self.initState in hlPathStates else ""
-        nodeStyle3 = "shape=doublecircle, " if self.initState in self.finalStates else ""
-        if self.isMoore():
-            outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}/{outSignal}\"];".format(
-                initState = str(self.initState),
-                outSignal = self.getOutSignal(self.initState, None, ifNotInDict),
-                style = nodeStyle,
-                style2 = nodeStyle2)
-        else:
-            outString += "\n\t\"{initState}\" [{style3}{style}{style2}label=\"{initState}\"];".format(
-                initState = str(self.initState),
-                style3 = nodeStyle3,
-                style = nodeStyle,
-                style2 = nodeStyle2)
-        outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(self.initState))
-        # all states
-        for state in self.states:
-            if state != self.initState:
-                nodeStyle = "shape=doublecircle, " if state in self.finalStates else ""
-                if state in highlightStates:
-                    nodeStyle += "style=filled, fillcolor={}, ".format(highlightStatesColor)
-                elif state in unreachableStates:
-                    nodeStyle += "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
-
-                nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
-                if self.isMoore():
-                    outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
-                        state = state,
-                        style = nodeStyle,
-                        style2 = nodeStyle2,
-                        outSignal = self.getOutSignal(state, None, ifNotInDict))
-                else:
-                    outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}\"];".format(
-                        state = state,
-                        style = nodeStyle,
-                        style2 = nodeStyle2)
-        # None state
-        if colorOfNoneState is not None:
-            outString += "\n\t\"-\" [style=filled, fillcolor={}, label=\"fail\"];".format(colorOfNoneState)
-
-        outString += "\n\tnode [style=filled, fillcolor=hotpink];"
-        # transition
-        for (state, inSignal, nextState) in self.transitionFunction:
-            pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) \
-                if (state, inSignal, nextState) in hlPathTransition else ""
-            if nextState is None:
-                nextState = ifNotInDict
-            if self.isMoore() or self.isFSM():
-                outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label={inSignal}];".format(
-                    state = str(state), nextState = str(nextState),
-                    inSignal = str(inSignal) if inSignal is not None else 'ε',
-                    style = pathStyle)
-            else:
-                outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label=\"{inSignal}/{outSignal}\"];".format(
-                    state = str(state), nextState = str(nextState), inSignal = str(inSignal),
-                    outSignal = self.getOutSignal(state, inSignal, ifNotInDict), style = pathStyle)
-        outString += "\n}"
-        return outString
-
-    def toMdTable(self):
-        """
-        !!! DRAFT !!!
-        Output example:\n
-        | Input \\ State | q0  | q1  | q2  | q3  |
-        |:--------------:|:---:|:---:|:---:|:---:|
-        |       0        | ... | ... | ... | q0  |
-        |       1        | ... | q2  | ... | ... |
-        |       2        | ... | ... | ... | ... |
-        """
-
-        outString = "| Input \\ State |"
-        if self.isMoore():
-            for state in self.states:
-                outString += " {state}/{outSignal} |".format(state = state, outSignal = self.getOutSignal(state, None, "-"))
-        else:
-            for state in self.states:
-                outString += " {state} |".format(state = state)
-        outString += "\n|:---:|"
-        for state in self.states:
-            outString += ":---:|"
-        outString += "\n"
-        for inSignal in self.inAlphabet + [None] if self.withEpsilon() else self.inAlphabet:
-            outString += "| {inSignal} |".format(inSignal = inSignal if inSignal is not None else 'ε' )
-            for curentState in self.states:
-                tempVal = ', '.join(self.getNextState(curentState, inSignal)) \
-                    if isinstance(self.getNextState(curentState, inSignal), list) \
-                    else self.getNextState(curentState, inSignal)
-                if tempVal is not None:
-                    if self.isMoore() or self.isFSM():
-                        outString += " {nextState} |".format(nextState = tempVal)
-                    else:
-                        outString += " {nextState}/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
-                else:
-                    if self.isMoore() or self.isFSM():
-                        outString += " - |"
-                    else:
-                        outString += " -/{outSignal} |".format(nextState = tempVal, outSignal = self.getOutSignal(curentState, inSignal, "-"))
-            outString += "\n"
-        return outString
-
     def asMoore(self):
         if self.isMoore():
             return self.deepcopy()
@@ -555,7 +319,7 @@ class SciPyFST:
                 for signal in self.inAlphabet:
                     transitionFunctionMoore.append([qj, signal, markedTranOut.get((key_Si, signal))])
 
-        return SciPyFST([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
+        return fst([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
 
     def getTestSignal(self):
         listOfInSignalsList = []
@@ -577,14 +341,14 @@ class SciPyFST:
         recGetNext(self.initState, dict(), [])
         return listOfInSignalsList
 
-    def _isContains(self, fst:'SciPyFST'):
+    def _isContains(self, fst:'fst'):
         listOfInSignalsList = fst.getTestSignal()
         for inSignalList in listOfInSignalsList:
             if self.playFST(inSignalList)[0] != fst.playFST(inSignalList)[0]:
                 return False
         return True
 
-    def isContains(self, fst:'SciPyFST'):
+    def isContains(self, fst:'fst'):
         def recGetNext(curentState, visitedStates:dict, inSignals:list):
             if visitedStates.get(curentState) is None:
                 visitedStates[curentState] = 1
@@ -602,7 +366,7 @@ class SciPyFST:
             return True
         return recGetNext(fst.initState, dict(), [])
 
-    def isSimilar(self, fst:'SciPyFST'):
+    def isSimilar(self, fst:'fst'):
         return self.isContains(fst) and fst.isContains(self)
 
     def getUnreachableStates(self):
