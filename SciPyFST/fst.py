@@ -1,6 +1,6 @@
 from copy import deepcopy
 
-class SciPyFST:
+class fst:
     def __init__(self,
                 states:list=[],
                 initState=None,
@@ -154,10 +154,10 @@ class SciPyFST:
         return False
 
     def deepcopy(self):
-        fst = SciPyFST(self.states, self.initState, self.inAlphabet,\
+        fstOut = fst(self.states, self.initState, self.inAlphabet,\
             self.outAlphabet, self.transitionFunction, self.outputFunction,\
             self.finalStates)
-        return fst
+        return fstOut
 
     def addState(self, state):
         if state not in self.states:
@@ -555,7 +555,7 @@ class SciPyFST:
                 for signal in self.inAlphabet:
                     transitionFunctionMoore.append([qj, signal, markedTranOut.get((key_Si, signal))])
 
-        return SciPyFST([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
+        return fst([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
 
     def getTestSignal(self):
         listOfInSignalsList = []
@@ -577,14 +577,14 @@ class SciPyFST:
         recGetNext(self.initState, dict(), [])
         return listOfInSignalsList
 
-    def _isContains(self, fst:'SciPyFST'):
+    def _isContains(self, fst:'fst'):
         listOfInSignalsList = fst.getTestSignal()
         for inSignalList in listOfInSignalsList:
             if self.playFST(inSignalList)[0] != fst.playFST(inSignalList)[0]:
                 return False
         return True
 
-    def isContains(self, fst:'SciPyFST'):
+    def isContains(self, fst:'fst'):
         def recGetNext(curentState, visitedStates:dict, inSignals:list):
             if visitedStates.get(curentState) is None:
                 visitedStates[curentState] = 1
@@ -602,7 +602,7 @@ class SciPyFST:
             return True
         return recGetNext(fst.initState, dict(), [])
 
-    def isSimilar(self, fst:'SciPyFST'):
+    def isSimilar(self, fst:'fst'):
         return self.isContains(fst) and fst.isContains(self)
 
     def getUnreachableStates(self):
