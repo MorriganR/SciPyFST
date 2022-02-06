@@ -61,7 +61,7 @@ jobs:
 
     - name: Publish to Test PyPI
       uses: pypa/gh-action-pypi-publish@master
-      if: ${{ github.event_name == 'push' && github.repository_owner == 'MorriganR' }}
+      #if: ${{ github.event_name == 'push' && github.repository_owner == 'MorriganR' }}
       with:
         user: __token__
         password: ${{ secrets.TEST_PYPI_KEY }}
