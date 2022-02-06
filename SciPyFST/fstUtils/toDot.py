@@ -1,4 +1,6 @@
-def toDot(fst, **kwargs):
+from .. import fst
+
+def toDot(fst:'fst', **kwargs):
     """
     nameGV = 'fst'\n
     rankdirGV = 'LR'\n
