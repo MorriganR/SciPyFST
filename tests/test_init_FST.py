@@ -1,5 +1,5 @@
 import unittest
-from devContext import FST
+from devSciPyFST import fst, fstUtils
 
 class TestInitFST(unittest.TestCase):
     def test_init_int_fst(self):
@@ -15,22 +15,22 @@ class TestInitFST(unittest.TestCase):
         # outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
         outputFunctionMealy = [ [0,1,0], [1,1,0], [2,2,2]]
 
-        fstMoore = FST(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
+        fstMoore = fst(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
         self.assertTrue(fstMoore.isValid())
         self.assertEqual(fstMoore.getType(), 'Moore')
 
-        fstMealy = FST(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunctionMealy)
+        fstMealy = fst(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunctionMealy)
         self.assertTrue(fstMealy.isValid())
         self.assertEqual(fstMealy.getType(), 'Mealy')
 
-        zero2_fst = FST(states, 5, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
+        zero2_fst = fst(states, 5, inAlphabet, outAlphabet, transitionFunction, outputFunctionMoore)
         self.assertTrue(zero2_fst.isValid())
 
-        fstMoore.toDot()
+        fstUtils.toDot(fstMoore)
 
     @unittest.expectedFailure
     def test_init_empty_fst(self):
-        fst01 = FST()
+        fst01 = fst()
         self.assertEqual(fst01.getType(), 'FSM')
 
         self.assertTrue(fst01.setType('Mealy'))
@@ -46,20 +46,20 @@ class TestInitFST(unittest.TestCase):
         self.assertTrue(fst01.initState is None)
         self.assertEqual(len(fst01.states), 0)
 
-        fst02 = FST([], 0)
+        fst02 = fst([], 0)
         self.assertTrue(fst02.getType() is None)
         self.assertEqual(len(fst02.states), 1)
         self.assertEqual(fst02.states[0], 0)
         self.assertEqual(fst02.initState, 0)
 
     def test_add_state(self):
-        fst01 = FST()
+        fst01 = fst()
         self.assertEqual(len(fst01.states), 0)
         self.assertTrue(fst01.addState('State \'\" їієЇІє fst01'))
         self.assertEqual(len(fst01.states), 1)
         self.assertEqual(fst01.states[0], 'State \'\" їієЇІє fst01')
 
-        fst02 = FST([], 'S0')
+        fst02 = fst([], 'S0')
         self.assertEqual(len(fst02.states), 1)
         self.assertTrue('S0' in fst02.states)
         self.assertTrue(fst02.addState('State \'\" їієЇІє fst02'))
@@ -77,20 +77,20 @@ class TestInitFST(unittest.TestCase):
         # outputFunction Mealy [ [State, inAlphabet, outAlphabet], ...]
         outputFunction = [ ['S0',0,33], ['S1',0,44], ['S1',1,55] ]
 
-        fst = FST(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunction)
-        self.assertEqual(len(fst.states), 6)
+        fstCopy = fst(states, initState, inAlphabet, outAlphabet, transitionFunction, outputFunction)
+        self.assertEqual(len(fstCopy.states), 6)
         states[0] = 'Sxxx'
-        self.assertFalse('Sxxx' in fst.states)
+        self.assertFalse('Sxxx' in fstCopy.states)
         initState = 'Sxxx'
-        self.assertFalse('Sxxx' in fst.states)
+        self.assertFalse('Sxxx' in fstCopy.states)
         inAlphabet.append('inAlphabet')
-        self.assertFalse('inAlphabet' in fst.inAlphabet)
+        self.assertFalse('inAlphabet' in fstCopy.inAlphabet)
         outAlphabet.append('outAlphabet')
-        self.assertFalse('outAlphabet' in fst.outAlphabet)
+        self.assertFalse('outAlphabet' in fstCopy.outAlphabet)
         transitionFunction.append(['transitionFunction',0,'transitionFunction'])
-        self.assertFalse(['transitionFunction',0,'transitionFunction'] in fst.transitionFunction)
+        self.assertFalse(['transitionFunction',0,'transitionFunction'] in fstCopy.transitionFunction)
         outputFunction.append(['outputFunction',0,'outputFunction'])
-        self.assertFalse(['outputFunction',0,'outputFunction'] in fst.transitionFunction)
+        self.assertFalse(['outputFunction',0,'outputFunction'] in fstCopy.transitionFunction)
 
 
 if __name__ == '__main__':

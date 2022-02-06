@@ -1,5 +1,5 @@
 import unittest
-from devContext import FST
+from devSciPyFST import fst, fstUtils
 
 class TestSciPyFST(unittest.TestCase):
     def test_pass(self):
