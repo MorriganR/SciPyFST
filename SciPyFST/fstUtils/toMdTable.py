@@ -25,7 +25,7 @@ def toMdTable(fst:'fst'):
     for inSignal in fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet:
         outString += "| {inSignal} |".format(inSignal = inSignal if inSignal is not None else 'ε' )
         for curentState in fst.states:
-            tempVal = ', '.join(fst.getNextState(curentState, inSignal)) \
+            tempVal = ', '.join(str(s) for s in fst.getNextState(curentState, inSignal)) \
                 if isinstance(fst.getNextState(curentState, inSignal), list) \
                 else fst.getNextState(curentState, inSignal)
             if tempVal is not None:
