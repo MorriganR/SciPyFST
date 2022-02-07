@@ -48,46 +48,35 @@ def toDot(fst:'fst', **kwargs):
         hlPathTransition = []
 
     # Dot header
-    outString = "digraph {} {{\n\trankdir={};\n\tnode [shape=point]; start;".format(nameGV, rankdirGV)
-    # InitState
-    outString += "\n\tnode [shape=circle];"
-    nodeStyle = "style=filled, fillcolor={}, ".format(highlightStatesColor) if fst.initState in highlightStates else ""
-    nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if fst.initState in hlPathStates else ""
-    nodeStyle3 = "shape=doublecircle, " if fst.initState in fst.finalStates else ""
-    if fst.isMoore():
-        outString += "\n\t\"{initState}\" [{style}{style2}label=\"{initState}/{outSignal}\"];".format(
-            initState = str(fst.initState),
-            outSignal = fst.getOutSignal(fst.initState, None, ifNotInDict),
-            style = nodeStyle,
-            style2 = nodeStyle2)
-    else:
-        outString += "\n\t\"{initState}\" [{style3}{style}{style2}label=\"{initState}\"];".format(
-            initState = str(fst.initState),
-            style3 = nodeStyle3,
-            style = nodeStyle,
-            style2 = nodeStyle2)
-    outString += "\n\tstart -> \"{initState}\" [label=start];\n\tnode [shape=circle];".format(initState = str(fst.initState))
-    # all states
-    for state in fst.states:
-        if state != fst.initState:
-            nodeStyle = "shape=doublecircle, " if state in fst.finalStates else ""
-            if state in highlightStates:
-                nodeStyle += "style=filled, fillcolor={}, ".format(highlightStatesColor)
-            elif state in unreachableStates:
-                nodeStyle += "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
+    outString = "digraph {} {{\n\trankdir={};node [shape=circle];".format(nameGV, rankdirGV)
 
-            nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
-            if fst.isMoore():
-                outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
-                    state = state,
-                    style = nodeStyle,
-                    style2 = nodeStyle2,
-                    outSignal = fst.getOutSignal(state, None, ifNotInDict))
-            else:
-                outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}\"];".format(
-                    state = state,
-                    style = nodeStyle,
-                    style2 = nodeStyle2)
+    # all states
+    initStateNum = 0
+    for state in fst.states:
+        nodeStyle = "shape=doublecircle, " if state in fst.finalStates else ""
+        if state in highlightStates:
+            nodeStyle += "style=filled, fillcolor={}, ".format(highlightStatesColor)
+        elif state in unreachableStates:
+            nodeStyle += "style=filled, fillcolor={}, ".format(colorOfUnreachableStates)
+
+        nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
+        if fst.isMoore():
+            outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
+                state = state,
+                style = nodeStyle,
+                style2 = nodeStyle2,
+                outSignal = fst.getOutSignal(state, None, ifNotInDict))
+        else:
+            outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}\"];".format(
+                state = state,
+                style = nodeStyle,
+                style2 = nodeStyle2)
+
+        if state == fst.initState:
+            outString += "\n\tstart{i} [shape=point]; start{i} -> \"{state}\" [label=start];\n\tnode [shape=circle];".format(
+                i = initStateNum, state = str(state))
+            initStateNum += 1
+
     # None state
     if colorOfNoneState is not None:
         outString += "\n\t\"-\" [style=filled, fillcolor={}, label=\"fail\"];".format(colorOfNoneState)
