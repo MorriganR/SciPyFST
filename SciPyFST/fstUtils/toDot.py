@@ -89,7 +89,7 @@ def toDot(fst:'fst', **kwargs):
         if nextState is None:
             nextState = ifNotInDict
         if fst.isMoore() or fst.isFSM():
-            outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label={inSignal}];".format(
+            outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label=\"{inSignal}\"];".format(
                 state = str(state), nextState = str(nextState),
                 inSignal = str(inSignal) if inSignal is not None else 'ε',
                 style = pathStyle)

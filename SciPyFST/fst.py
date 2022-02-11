@@ -10,16 +10,16 @@ class fst:
                 outputFunction:list=[],
                 finalStates:list=[],
         ):
-        self.states = sorted(dict.fromkeys(states))#, key=str)
+        self.states = list(dict.fromkeys(states))#, key=str)
         """ states = [0,1,2] """
 
         self.initState = deepcopy(initState)
         """ initState = 0 """
 
-        self.inAlphabet = sorted(dict.fromkeys(inAlphabet))#, key=str)
+        self.inAlphabet = list(dict.fromkeys(inAlphabet))#, key=str)
         """ inAlphabet = [0,1] """
 
-        self.outAlphabet = sorted(dict.fromkeys(outAlphabet))#, key=str)
+        self.outAlphabet = list(dict.fromkeys(outAlphabet))#, key=str)
         """ outAlphabet = [0,1,2] """
 
         self.transitionFunction = deepcopy(transitionFunction)
@@ -34,14 +34,14 @@ class fst:
         outputFunction = [ [0,1,0], [1,1,0], [2,2,2]]
         """
 
-        self.finalStates = sorted(dict.fromkeys(finalStates))#, key=str)
+        self.finalStates = list(dict.fromkeys(finalStates))#, key=str)
         """ finalStates = [0,1,2] """
 
         self.__type = self.__detTypeByOutputFunction()
 
-        self.states = sorted(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))#, key=str)
-        self.inAlphabet = sorted(dict.fromkeys(self.inAlphabet + self.__getInAlphabetFromTransitionAndOutputFunction()))#, key=str)
-        self.outAlphabet = sorted(dict.fromkeys(self.outAlphabet + self.__getOutAlphabetFromTransitionAndOutputFunction()))#, key=str)
+        self.states = list(dict.fromkeys(self.states + self.__getStatesFromTransitionAndOutputFunction()))#, key=str)
+        self.inAlphabet = list(dict.fromkeys(self.inAlphabet + self.__getInAlphabetFromTransitionAndOutputFunction()))#, key=str)
+        self.outAlphabet = list(dict.fromkeys(self.outAlphabet + self.__getOutAlphabetFromTransitionAndOutputFunction()))#, key=str)
 
         self.trFuncDict = dict()
         for (curentState, inSignal, nextState) in self.transitionFunction:
@@ -94,7 +94,7 @@ class fst:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 if curentState is not None:
                     toOut.append(curentState)
-        return sorted(dict.fromkeys(toOut))#, key=str)
+        return list(dict.fromkeys(toOut))#, key=str)
 
     def __getInAlphabetFromTransitionAndOutputFunction(self):
         toOut = []
@@ -105,7 +105,7 @@ class fst:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 if inSignal is not None:
                     toOut.append(inSignal)
-        return sorted(dict.fromkeys(toOut))#, key=str)
+        return list(dict.fromkeys(toOut))#, key=str)
 
     def __getOutAlphabetFromTransitionAndOutputFunction(self):
         if self.isFSM():
@@ -119,7 +119,7 @@ class fst:
             for (curentState, inSignal, outSignal) in self.outputFunction:
                 if outSignal is not None:
                     toOut.append(outSignal)
-        return sorted(dict.fromkeys(toOut))#, key=str)
+        return list(dict.fromkeys(toOut))#, key=str)
 
     def isValid(self):
         """ Check TODO more checks needed """
@@ -162,7 +162,7 @@ class fst:
     def addState(self, state):
         if state not in self.states:
             self.states.append(state)
-            self.states = sorted(dict.fromkeys(self.states))#, key=str)
+            self.states = list(dict.fromkeys(self.states))#, key=str)
         return True
 
     def addTransition(self, curentState, inSignal, nextState):
@@ -265,6 +265,7 @@ class fst:
         curentStates = set(self.initState) \
             if isinstance(self.initState, (list, set)) \
             else set([self.initState,])
+        curentStates = self.getEpsilonClosure(curentStates)
         for inSignal in inSignals:
             __debug( "  curent state(s): " + str(curentStates) )
             __debug( "  input signal: " + str(inSignal) )
@@ -384,4 +385,4 @@ class fst:
             else:
                 return
         recGetNext(self.initState, dict())
-        return sorted(unreachableStates)
+        return list(unreachableStates)
