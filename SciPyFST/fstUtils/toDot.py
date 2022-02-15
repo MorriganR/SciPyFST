@@ -77,7 +77,7 @@ def toDot(fst:'fst', **kwargs):
                 i = initStateNum, state = str(state))
             initStateNum += 1
 
-    # None state
+    # None state, TODO dont show state None if not required
     if colorOfNoneState is not None:
         outString += "\n\t\"-\" [style=filled, fillcolor={}, label=\"fail\"];".format(colorOfNoneState)
 
@@ -87,7 +87,10 @@ def toDot(fst:'fst', **kwargs):
         pathStyle = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) \
             if (state, inSignal, nextState) in hlPathTransition else ""
         if nextState is None:
-            nextState = ifNotInDict
+            if colorOfNoneState is not None:
+                nextState = ifNotInDict
+            else:
+                continue
         if fst.isMoore() or fst.isFSM():
             outString += "\n\t\"{state}\" -> \"{nextState}\" [{style}label=\"{inSignal}\"];".format(
                 state = str(state), nextState = str(nextState),

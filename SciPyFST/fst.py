@@ -301,6 +301,7 @@ class fst:
         for topHeaderState_Si in self.states:
             for leftHeaderSignal_Xj in self.inAlphabet:
                 tableState_Sm = self.getNextState(topHeaderState_Si, leftHeaderSignal_Xj)
+                if tableState_Sm is None: continue
                 tableSignal_Yn = self.getOutSignal(topHeaderState_Si, leftHeaderSignal_Xj)
                 existMooreState_qi = dictForSearchNewState.get((tableState_Sm, tableSignal_Yn)) # (1)
                 if existMooreState_qi is None:
