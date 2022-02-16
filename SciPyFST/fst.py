@@ -323,6 +323,37 @@ class fst:
 
         return fst([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
 
+    def asDFA(self):
+        # nfa (  A,  Q,  q0,  F,  T )
+        # dfa ( Ad, nextQ_dfa, q0_dfa, finalQ_dfa, T_dfa )
+        Qstack_dfa = list()
+        Qvisited_dfa = set()
+        T_dfa = list()
+        q0_dfa = self.getEpsilonClosure(set(self.initState) \
+                if isinstance(self.initState, (list, set, frozenset)) \
+                else set([self.initState,]))
+        q0_dfa.discard(None)
+        q0_dfa = tuple([c for b, c in sorted([(str(a), a) for a in q0_dfa])])
+        Qstack_dfa.append(q0_dfa)
+        while Qstack_dfa:
+            curentQ_dfa = Qstack_dfa.pop()
+            for inSimbol in self.inAlphabet:
+                nextQ_dfa = set(self.getEpsilonClosure(self.getNextStates(set(curentQ_dfa), inSimbol)))
+                nextQ_dfa.discard(None)
+                nextQ_dfa = tuple([c for b, c in sorted([(str(a), a) for a in nextQ_dfa])])
+                T_dfa.append([curentQ_dfa, inSimbol, nextQ_dfa])
+                if nextQ_dfa not in Qvisited_dfa:
+                    Qvisited_dfa.add(nextQ_dfa)
+                    if nextQ_dfa != curentQ_dfa:
+                        Qstack_dfa.append(nextQ_dfa)
+        finalQ_dfa = list()
+        for state_d in Qvisited_dfa:
+            for state_n in state_d:
+                if state_n in self.finalStates:
+                    finalQ_dfa.append(state_d)
+                    continue
+        return fst(initState = q0_dfa, transitionFunction = T_dfa, finalStates = finalQ_dfa)
+
     def getTestSignal(self):
         listOfInSignalsList = []
         def recGetNext(curentState, visitedStates:dict, inSignals:list):
