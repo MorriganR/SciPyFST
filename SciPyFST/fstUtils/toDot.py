@@ -28,6 +28,12 @@ def toDot(fst:'fst', **kwargs):
         2 -> 2 [ label = 0 ];
     }
     """
+    def getStateLabel(state):
+        if not isinstance(state, (tuple,)):
+            if state or isinstance(state, (int,)): return str(state)
+        else:
+            if state: return '{'+','.join(str(s) for s in state)+'}'
+        return '-'
 
     nameGV = kwargs.pop('nameGV', 'fst')
     rankdirGV = kwargs.pop('rankdirGV', 'LR')
@@ -61,14 +67,16 @@ def toDot(fst:'fst', **kwargs):
 
         nodeStyle2 = "color={hlc}, fontcolor={hlc}, style=bold, ".format(hlc=highlightPathColor) if state in hlPathStates else ""
         if fst.isMoore():
-            outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}/{outSignal}\"];".format(
+            outString += "\n\t\"{state}\" [{style}{style2}label=\"{stateLabel}/{outSignal}\"];".format(
                 state = state,
+                stateLabel = getStateLabel(state),
                 style = nodeStyle,
                 style2 = nodeStyle2,
                 outSignal = fst.getOutSignal(state, None, ifNotInDict))
         else:
-            outString += "\n\t\"{state}\" [{style}{style2}label=\"{state}\"];".format(
+            outString += "\n\t\"{state}\" [{style}{style2}label=\"{stateLabel}\"];".format(
                 state = state,
+                stateLabel = getStateLabel(state),
                 style = nodeStyle,
                 style2 = nodeStyle2)
 
