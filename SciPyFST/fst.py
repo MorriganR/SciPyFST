@@ -341,6 +341,8 @@ class fst:
                 nextQ_dfa = set(self.getEpsilonClosure(self.getNextStates(set(curentQ_dfa), inSimbol)))
                 nextQ_dfa.discard(None)
                 nextQ_dfa = tuple([c for b, c in sorted([(str(a), a) for a in nextQ_dfa])])
+                if tuple() == nextQ_dfa:
+                    continue
                 T_dfa.append([curentQ_dfa, inSimbol, nextQ_dfa])
                 if nextQ_dfa not in Qvisited_dfa:
                     Qvisited_dfa.add(nextQ_dfa)

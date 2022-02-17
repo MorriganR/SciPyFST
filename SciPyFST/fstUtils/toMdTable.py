@@ -11,32 +11,39 @@ def toMdTable(fst:'fst'):
     |       2        | ... | ... | ... | ... |
     """
 
+    def getStatesLabel(state):
+        if not isinstance(state, (list, set, frozenset)):
+            if not isinstance(state, (tuple,)):
+                if state or isinstance(state, (int,)): return (str(state), str(state))
+            else:
+                if state: return ('{'+','.join(str(s) for s in state)+'}', ''.join(str(s) for s in state))
+            return ('-','~')
+        else:
+            return (','.join(str(s) for s in state), ''.join(str(s) for s in state))
+
+    fstStates = set(fst.states)
+    fstStates.discard(None)
+    fstStates.discard(tuple())
+    fstStates = tuple([c for b, c in sorted([(getStatesLabel(a)[1], a) for a in fstStates])])
+
     outString = "| Input \\ State |"
-    if fst.isMoore():
-        for state in fst.states:
-            outString += " {state}/{outSignal} |".format(state = state, outSignal = fst.getOutSignal(state, None, "-"))
-    else:
-        for state in fst.states:
-            outString += " {state} |".format(state = state)
-    outString += "\n|:---:|"
-    for state in fst.states:
-        outString += ":---:|"
-    outString += "\n"
+    for state in fstStates:
+        stateLabel = getStatesLabel(state)[0]
+        if fst.isMoore():
+            outString += " {state}/{outSignal} |".format(state = stateLabel, outSignal = fst.getOutSignal(state, None, "-"))
+        else:
+            outString += " {state} |".format(state = stateLabel)
+
+    outString += "\n|:---:|" + ":---:|" * len(fstStates) + "\n"
+
     for inSignal in fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet:
         outString += "| {inSignal} |".format(inSignal = inSignal if inSignal is not None else 'ε' )
-        for curentState in fst.states:
-            tempVal = ', '.join(str(s) for s in fst.getNextState(curentState, inSignal)) \
-                if isinstance(fst.getNextState(curentState, inSignal), list) \
-                else fst.getNextState(curentState, inSignal)
-            if tempVal is not None:
-                if fst.isMoore() or fst.isFSM():
-                    outString += " {nextState} |".format(nextState = tempVal)
-                else:
-                    outString += " {nextState}/{outSignal} |".format(nextState = tempVal, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+        for curentState in fstStates:
+            stateLabel = getStatesLabel(fst.getNextState(curentState, inSignal))[0]
+            if fst.isMoore() or fst.isFSM():
+                outString += " {nextState} |".format(nextState = stateLabel)
             else:
-                if fst.isMoore() or fst.isFSM():
-                    outString += " - |"
-                else:
-                    outString += " -/{outSignal} |".format(nextState = tempVal, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+                outString += " {nextState}/{outSignal} |".format(nextState = stateLabel, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
         outString += "\n"
+
     return outString
