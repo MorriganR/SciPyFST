@@ -13,34 +13,40 @@ def toTexTable(fst:'fst'):
     \end{tabular}
     """
 
-    outString = "\\begin{tabular}{|c||"
-    outString += "c|" * len(fst.states)
+    def getStatesLabel(state):
+        if not isinstance(state, (list, set, frozenset)):
+            if not isinstance(state, (tuple,)):
+                if state or isinstance(state, (int,)): return (str(state), str(state))
+            else:
+                if state: return ('\\{'+','.join(str(s) for s in state)+'\\}', ''.join(str(s) for s in state))
+            return ('-','~')
+        else:
+            return (','.join(str(s) for s in state), ''.join(str(s) for s in state))
+
+    fstStates = set(fst.states)
+    fstStates.discard(None)
+    fstStates.discard(tuple())
+    fstStates = tuple([c for b, c in sorted([(getStatesLabel(a)[1], a) for a in fstStates])])
+
+    outString = "\\begin{tabular}{|c||" + "c|" * len(fstStates)
     outString += "}\n \\hline\n \\multirow{2}{*}{Input} &\n \\multicolumn{"
-    outString += str(len(fst.states))
-    outString += "}{c|}{State} \\\\ \\cline{2-" + str(len(fst.states)+1) + "}\n"
-    if fst.isMoore():
-        for state in fst.states:
-            outString += " & {state}/{outSignal}".format(state = state, outSignal = fst.getOutSignal(state, None, "-"))
-    else:
-        for state in fst.states:
-            outString += " & {state}".format(state = state)
+    outString += str(len(fstStates))
+    outString += "}{c|}{State} \\\\ \\cline{2-" + str(len(fstStates)+1) + "}\n"
+    for state in fstStates:
+        if fst.isMoore():
+            outString += " & {state}/{outSignal}".format(state = getStatesLabel(state)[0], outSignal = fst.getOutSignal(state, None, "-"))
+        else:
+            outString += " & {state}".format(state = getStatesLabel(state)[0])
     outString += " \\\\ \\hline\\hline\n"
+
     for inSignal in fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet:
         outString += " {inSignal}".format(inSignal = inSignal if inSignal is not None else 'ε' )
-        for curentState in fst.states:
-            tempVal = ', '.join(str(s) for s in fst.getNextState(curentState, inSignal)) \
-                if isinstance(fst.getNextState(curentState, inSignal), list) \
-                else fst.getNextState(curentState, inSignal)
-            if tempVal is not None:
-                if fst.isMoore() or fst.isFSM():
-                    outString += " & {nextState}".format(nextState = tempVal)
-                else:
-                    outString += " & {nextState}/{outSignal}".format(nextState = tempVal, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+        for curentState in fstStates:
+            stateLabel = getStatesLabel(fst.getNextState(curentState, inSignal))[0]
+            if fst.isMoore() or fst.isFSM():
+                outString += " & {nextState}".format(nextState = stateLabel)
             else:
-                if fst.isMoore() or fst.isFSM():
-                    outString += " & -"
-                else:
-                    outString += " & -/{outSignal}".format(nextState = tempVal, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+                outString += " & {nextState}/{outSignal}".format(nextState = stateLabel, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
         outString += " \\\\ \\hline\n"
     outString += "\\end{tabular}\n"
     return outString
