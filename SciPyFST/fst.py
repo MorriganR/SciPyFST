@@ -343,11 +343,12 @@ class fst:
                 nextQ_dfa = tuple([c for b, c in sorted([(str(a), a) for a in nextQ_dfa])])
                 if tuple() == nextQ_dfa:
                     continue
-                T_dfa.append([curentQ_dfa, inSimbol, nextQ_dfa])
+                T_dfa.append(tuple([curentQ_dfa, inSimbol, nextQ_dfa]))
                 if nextQ_dfa not in Qvisited_dfa:
                     Qvisited_dfa.add(nextQ_dfa)
                     if nextQ_dfa != curentQ_dfa:
                         Qstack_dfa.append(nextQ_dfa)
+        T_dfa = list(dict.fromkeys(T_dfa))
         finalQ_dfa = list()
         for state_d in Qvisited_dfa:
             for state_n in state_d:
