@@ -13,6 +13,9 @@ def toTexTable(fst:'fst'):
     \end{tabular}
     """
 
+    def getInSignalLabel(inSignal):
+        return inSignal if inSignal is not None else 'ε'
+
     def getStatesLabel(state):
         if not isinstance(state, (list, set, frozenset)):
             if not isinstance(state, (tuple,)):
@@ -40,7 +43,7 @@ def toTexTable(fst:'fst'):
     outString += " \\\\ \\hline\\hline\n"
 
     for inSignal in fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet:
-        outString += " {inSignal}".format(inSignal = inSignal if inSignal is not None else 'ε' )
+        outString += " {inSignal}".format(inSignal = getInSignalLabel(inSignal) )
         for curentState in fstStates:
             stateLabel = getStatesLabel(fst.getNextState(curentState, inSignal))[0]
             if fst.isMoore() or fst.isFSM():
