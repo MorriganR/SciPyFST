@@ -19,17 +19,26 @@ def toTexTable(fst:'fst'):
     def getStatesLabel(state):
         if not isinstance(state, (list, set, frozenset)):
             if not isinstance(state, (tuple,)):
-                if state or isinstance(state, (int,)): return (str(state), str(state))
+                if state or isinstance(state, (int,)):
+                    return (str(state), str(state))
             else:
-                if state: return ('\\{'+','.join(str(s) for s in state)+'\\}', ''.join(str(s) for s in state))
+                if state:
+                    return ('\\{'+','.join(str(s) for s in state)+'\\}', ''.join(str(s) for s in state))
             return ('-','~')
         else:
             return (','.join(str(s) for s in state), ''.join(str(s) for s in state))
 
+    def getStatesLabelStr(state):
+        return getStatesLabel(state)[0]
+
+    def getStatesLabelForSort(state):
+        return getStatesLabel(state)[1]
+
     fstStates = set(fst.states)
     fstStates.discard(None)
     fstStates.discard(tuple())
-    fstStates = tuple([c for b, c in sorted([(getStatesLabel(a)[1], a) for a in fstStates])])
+    # sort states by getStatesLabelForSort
+    fstStates = tuple([c for b, c in sorted([(getStatesLabelForSort(a), a) for a in fstStates])])
 
     outString = "\\begin{tabular}{|c||" + "c|" * len(fstStates)
     outString += "}\n \\hline\n \\multirow{2}{*}{Input} &\n \\multicolumn{"
@@ -37,15 +46,15 @@ def toTexTable(fst:'fst'):
     outString += "}{c|}{State} \\\\ \\cline{2-" + str(len(fstStates)+1) + "}\n"
     for state in fstStates:
         if fst.isMoore():
-            outString += " & {state}/{outSignal}".format(state = getStatesLabel(state)[0], outSignal = fst.getOutSignal(state, None, "-"))
+            outString += " & {state}/{outSignal}".format(state = getStatesLabelStr(state), outSignal = fst.getOutSignal(state, None, "-"))
         else:
-            outString += " & {state}".format(state = getStatesLabel(state)[0])
+            outString += " & {state}".format(state = getStatesLabelStr(state))
     outString += " \\\\ \\hline\\hline\n"
 
     for inSignal in fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet:
         outString += " {inSignal}".format(inSignal = getInSignalLabel(inSignal) )
         for curentState in fstStates:
-            stateLabel = getStatesLabel(fst.getNextState(curentState, inSignal))[0]
+            stateLabel = getStatesLabelStr(fst.getNextState(curentState, inSignal))
             if fst.isMoore() or fst.isFSM():
                 outString += " & {nextState}".format(nextState = stateLabel)
             else:
