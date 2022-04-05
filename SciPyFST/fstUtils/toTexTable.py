@@ -34,12 +34,18 @@ def toTexTable(fst:'fst'):
     def getStatesLabelForSort(state):
         return getStatesLabel(state)[1]
 
+    def getTableHeadSellState(state):
+        if fst.isMoore():
+            return "{state}/{outSignal}".format(state = getStatesLabelStr(state), outSignal = fst.getOutSignal(state, None, "-"))
+        else:
+            return "{state}".format(state = getStatesLabelStr(state))
+
     def getTableCell(curentState, inSignal):
         stateLabel = getStatesLabelStr(fst.getNextState(curentState, inSignal))
         if fst.isMoore() or fst.isFSM():
-            return " & {nextState}".format(nextState = stateLabel)
+            return "{nextState}".format(nextState = stateLabel)
         else:
-            return " & {nextState}/{outSignal}".format(nextState = stateLabel, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+            return "{nextState}/{outSignal}".format(nextState = stateLabel, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
 
     fstStates = set(fst.states)
     fstStates.discard(None)
@@ -53,17 +59,15 @@ def toTexTable(fst:'fst'):
     outString += "}\n \\hline\n \\multirow{2}{*}{Input} &\n \\multicolumn{"
     outString += str(len(fstStates))
     outString += "}{c|}{State} \\\\ \\cline{2-" + str(len(fstStates)+1) + "}\n"
+
     for state in fstStates:
-        if fst.isMoore():
-            outString += " & {state}/{outSignal}".format(state = getStatesLabelStr(state), outSignal = fst.getOutSignal(state, None, "-"))
-        else:
-            outString += " & {state}".format(state = getStatesLabelStr(state))
+        outString += " & " + getTableHeadSellState(state)
     outString += " \\\\ \\hline\\hline\n"
 
     for inSignal in inSignals:
         outString += " {inSignal}".format(inSignal = getInSignalLabel(inSignal) )
         for curentState in fstStates:
-            outString += getTableCell(curentState, inSignal)
+            outString += " & " + getTableCell(curentState, inSignal)
         outString += " \\\\ \\hline\n"
     outString += "\\end{tabular}\n"
 
