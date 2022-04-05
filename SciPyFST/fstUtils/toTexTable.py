@@ -34,11 +34,20 @@ def toTexTable(fst:'fst'):
     def getStatesLabelForSort(state):
         return getStatesLabel(state)[1]
 
+    def getTableCell(curentState, inSignal):
+        stateLabel = getStatesLabelStr(fst.getNextState(curentState, inSignal))
+        if fst.isMoore() or fst.isFSM():
+            return " & {nextState}".format(nextState = stateLabel)
+        else:
+            return " & {nextState}/{outSignal}".format(nextState = stateLabel, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+
     fstStates = set(fst.states)
     fstStates.discard(None)
     fstStates.discard(tuple())
     # sort states by getStatesLabelForSort
     fstStates = tuple([c for b, c in sorted([(getStatesLabelForSort(a), a) for a in fstStates])])
+
+    inSignals = fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet
 
     outString = "\\begin{tabular}{|c||" + "c|" * len(fstStates)
     outString += "}\n \\hline\n \\multirow{2}{*}{Input} &\n \\multicolumn{"
@@ -51,14 +60,11 @@ def toTexTable(fst:'fst'):
             outString += " & {state}".format(state = getStatesLabelStr(state))
     outString += " \\\\ \\hline\\hline\n"
 
-    for inSignal in fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet:
+    for inSignal in inSignals:
         outString += " {inSignal}".format(inSignal = getInSignalLabel(inSignal) )
         for curentState in fstStates:
-            stateLabel = getStatesLabelStr(fst.getNextState(curentState, inSignal))
-            if fst.isMoore() or fst.isFSM():
-                outString += " & {nextState}".format(nextState = stateLabel)
-            else:
-                outString += " & {nextState}/{outSignal}".format(nextState = stateLabel, outSignal = fst.getOutSignal(curentState, inSignal, "-"))
+            outString += getTableCell(curentState, inSignal)
         outString += " \\\\ \\hline\n"
     outString += "\\end{tabular}\n"
+
     return outString
