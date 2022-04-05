@@ -50,8 +50,9 @@ def toTexTable(fst:'fst', flip=None):
     fstStates = set(fst.states)
     fstStates.discard(None)
     fstStates.discard(tuple())
-    # sort states by getStatesLabelForSort
-    fstStates = tuple([c for b, c in sorted([(getStatesLabelForSort(a), a) for a in fstStates])])
+    fstStates = list(fstStates)
+    fstStates.sort( key=lambda state: getStatesLabelForSort(state) )
+    fstStates.sort( key=lambda state: len(str(state)) )
 
     inSignals = fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet
 
