@@ -1,6 +1,6 @@
 from .. import fst
 
-def toTexTable(fst:'fst', flip=None):
+def toTexTable(fst:'fst', flip=None, markStates=None):
     """
     \\begin{tabular}{|c||c|c|c|c|} \n
       \\hline \n
@@ -35,10 +35,16 @@ def toTexTable(fst:'fst', flip=None):
         return getStatesLabel(state)[1]
 
     def getTableHeadSellState(state):
-        if fst.isMoore():
-            return "{state}/{outSignal}".format(state = getStatesLabelStr(state), outSignal = fst.getOutSignal(state, None, "-"))
+        if markStates and state == fst.initState:
+            statePrefix = "$\\rightarrow$ "
+        elif markStates and state in fst.finalStates:
+            statePrefix = "$\\ast$ "
         else:
-            return "{state}".format(state = getStatesLabelStr(state))
+            statePrefix = ""
+        if fst.isMoore():
+            return statePrefix + "{state}/{outSignal}".format(state = getStatesLabelStr(state), outSignal = fst.getOutSignal(state, None, "-"))
+        else:
+            return statePrefix + "{state}".format(state = getStatesLabelStr(state))
 
     def getTableCell(curentState, inSignal):
         stateLabel = getStatesLabelStr(fst.getNextState(curentState, inSignal))
