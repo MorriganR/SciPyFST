@@ -36,9 +36,9 @@ def toTexTable(fst:'fst', flip=None, markStates=None):
 
     def getTableHeadSellState(state):
         if markStates and state == fst.initState:
-            statePrefix = "$\\rightarrow$ "
+            statePrefix = "$\\rightarrow$"
         elif markStates and state in fst.finalStates:
-            statePrefix = "$\\ast$ "
+            statePrefix = "*"
         else:
             statePrefix = ""
         if fst.isMoore():
