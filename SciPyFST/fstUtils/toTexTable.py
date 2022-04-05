@@ -1,6 +1,6 @@
 from .. import fst
 
-def toTexTable(fst:'fst'):
+def toTexTable(fst:'fst', flip=None):
     """
     \\begin{tabular}{|c||c|c|c|c|} \n
       \\hline \n
@@ -14,7 +14,7 @@ def toTexTable(fst:'fst'):
     """
 
     def getInSignalLabel(inSignal):
-        return inSignal if inSignal is not None else 'ε'
+        return str(inSignal) if inSignal is not None else 'ε'
 
     def getStatesLabel(state):
         if not isinstance(state, (list, set, frozenset)):
@@ -55,20 +55,37 @@ def toTexTable(fst:'fst'):
 
     inSignals = fst.inAlphabet + [None] if fst.withEpsilon() else fst.inAlphabet
 
-    outString = "\\begin{tabular}{|c||" + "c|" * len(fstStates)
-    outString += "}\n \\hline\n \\multirow{2}{*}{Input} &\n \\multicolumn{"
-    outString += str(len(fstStates))
-    outString += "}{c|}{State} \\\\ \\cline{2-" + str(len(fstStates)+1) + "}\n"
+    if flip:
+        outString = "\\begin{tabular}{|c||" + "c|" * len(inSignals)
+        outString += "}\n \\hline\n \\multirow{2}{*}{State} &\n \\multicolumn{"
+        outString += str(len(inSignals))
+        outString += "}{c|}{Input} \\\\ \\cline{2-" + str(len(inSignals)+1) + "}\n"
 
-    for state in fstStates:
-        outString += " & " + getTableHeadSellState(state)
-    outString += " \\\\ \\hline\\hline\n"
+        for inSignal in inSignals:
+            outString += " & " + getInSignalLabel(inSignal)
+        outString += " \\\\ \\hline\\hline\n"
 
-    for inSignal in inSignals:
-        outString += " {inSignal}".format(inSignal = getInSignalLabel(inSignal) )
         for curentState in fstStates:
-            outString += " & " + getTableCell(curentState, inSignal)
-        outString += " \\\\ \\hline\n"
-    outString += "\\end{tabular}\n"
+            outString += " {state}".format(state = getTableHeadSellState(curentState) )
+            for inSignal in inSignals:
+                outString += " & " + getTableCell(curentState, inSignal)
+            outString += " \\\\ \\hline\n"
+        outString += "\\end{tabular}\n"
+    else:
+        outString = "\\begin{tabular}{|c||" + "c|" * len(fstStates)
+        outString += "}\n \\hline\n \\multirow{2}{*}{Input} &\n \\multicolumn{"
+        outString += str(len(fstStates))
+        outString += "}{c|}{State} \\\\ \\cline{2-" + str(len(fstStates)+1) + "}\n"
+
+        for state in fstStates:
+            outString += " & " + getTableHeadSellState(state)
+        outString += " \\\\ \\hline\\hline\n"
+
+        for inSignal in inSignals:
+            outString += " {inSignal}".format(inSignal = getInSignalLabel(inSignal) )
+            for curentState in fstStates:
+                outString += " & " + getTableCell(curentState, inSignal)
+            outString += " \\\\ \\hline\n"
+        outString += "\\end{tabular}\n"
 
     return outString
