@@ -3,3 +3,4 @@ numpy
 graphviz
 matplotlib
 wavedrom
+flake8

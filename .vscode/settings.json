@@ -18,5 +18,8 @@
     "telemetry.enableCrashReporter": false,
     "editor.bracketPairColorization.enabled": true,
     "python.pythonPath": "venvdev\\Scripts\\python.exe",
-    "jupyter.jupyterServerType": "local"
+    "jupyter.jupyterServerType": "local",
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true,
+    "python.linting.flake8Args": ["--ignore=E501"]
 }
