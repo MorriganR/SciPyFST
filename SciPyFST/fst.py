@@ -246,7 +246,7 @@ class fst:
             return outSignals[1:], outStates
         return outSignals, outStates
 
-    def getEpsilonClosure(self, states):
+    def getEpsilonClosure(self, states, returnType=None):
         """
         return ε-closure of a state or set of states
         https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton#%CE%B5-closure_of_a_state_or_set_of_states
@@ -257,6 +257,9 @@ class fst:
             if set(nextStates).issubset(inStates):
                 break
             inStates.update(nextStates)
+        if returnType == 'sortedTupleWithoutNone':
+            inStates.discard(None)
+            return tuple(sorted(inStates, key=str))
         return inStates
 
     def playFSM(self, inSignals: list, debug=None):
@@ -359,6 +362,38 @@ class fst:
                     finalQ_dfa.append(state_d)
                     continue
         return fst(initState=q0_dfa, transitionFunction=T_dfa, finalStates=finalQ_dfa)
+
+    def isNotEqual(self, fst: 'fst'):
+        states_stack = list()
+        states_visited = set()
+        final_state_self = set(self.finalStates)
+        final_state_fst = set(fst.finalStates)
+
+        init_state_self = self.getEpsilonClosure(self.initState, returnType='sortedTupleWithoutNone')
+        init_state_fst = fst.getEpsilonClosure(fst.initState, returnType='sortedTupleWithoutNone')
+        states_stack.append((init_state_self, init_state_fst, tuple()))
+        states_visited.add((init_state_self, init_state_fst))
+
+        while states_stack:
+            (state_self, state_fst, in_path) = states_stack.pop()
+            # place for check 0-equivalent state_self and state_fst
+            is_final_self = final_state_self.isdisjoint(set(state_self))
+            is_final_fst = final_state_fst.isdisjoint(set(state_fst))
+            if is_final_self != is_final_fst:
+                return in_path
+            for inSimbol in self.inAlphabet:
+                curent_path = in_path + (inSimbol, )
+                # place for check 1-equivalent state_self and state_fst
+                next_state_self = self.getEpsilonClosure(self.getNextStates(set(state_self), inSimbol),
+                                                         returnType='sortedTupleWithoutNone')
+                next_state_fst = fst.getEpsilonClosure(fst.getNextStates(set(state_fst), inSimbol),
+                                                       returnType='sortedTupleWithoutNone')
+                if (next_state_self, next_state_fst) not in states_visited:
+                    states_stack.append((next_state_self, next_state_fst, curent_path))
+                    states_visited.add((next_state_self, next_state_fst))
+                    print('add -> ' + str((next_state_self, next_state_fst, curent_path)))
+
+        return False
 
     def getTestSignal(self):
         listOfInSignalsList = []
