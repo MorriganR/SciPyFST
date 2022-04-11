@@ -260,6 +260,8 @@ class fst:
         if returnType == 'sortedTupleWithoutNone':
             inStates.discard(None)
             return tuple(sorted(inStates, key=str))
+        if returnType == 'sortedTuple':
+            return tuple(sorted(inStates, key=str))
         return inStates
 
     def playFSM(self, inSignals: list, debug=None):
@@ -364,34 +366,43 @@ class fst:
         return fst(initState=q0_dfa, transitionFunction=T_dfa, finalStates=finalQ_dfa)
 
     def isNotEqual(self, fst: 'fst'):
+        if self.isFSM() != fst.isFSM():
+            return 'FSM != FST'
         states_stack = list()
         states_visited = set()
         final_state_self = set(self.finalStates)
         final_state_fst = set(fst.finalStates)
 
-        init_state_self = self.getEpsilonClosure(self.initState, returnType='sortedTupleWithoutNone')
-        init_state_fst = fst.getEpsilonClosure(fst.initState, returnType='sortedTupleWithoutNone')
+        init_state_self = self.getEpsilonClosure(self.initState, returnType='sortedTuple')
+        init_state_fst = fst.getEpsilonClosure(fst.initState, returnType='sortedTuple')
+        # place for check 0-equivalent init_state_self and init_state_fst
+        # have sens for FSM compare to FSM or FST Moore compare to FST Moore
         states_stack.append((init_state_self, init_state_fst, tuple()))
         states_visited.add((init_state_self, init_state_fst))
 
         while states_stack:
             (state_self, state_fst, in_path) = states_stack.pop()
-            # place for check 0-equivalent state_self and state_fst
-            is_final_self = final_state_self.isdisjoint(set(state_self))
-            is_final_fst = final_state_fst.isdisjoint(set(state_fst))
-            if is_final_self != is_final_fst:
-                return in_path
             for inSimbol in self.inAlphabet:
                 curent_path = in_path + (inSimbol, )
-                # place for check 1-equivalent state_self and state_fst
                 next_state_self = self.getEpsilonClosure(self.getNextStates(set(state_self), inSimbol),
-                                                         returnType='sortedTupleWithoutNone')
+                                                         returnType='sortedTuple')
                 next_state_fst = fst.getEpsilonClosure(fst.getNextStates(set(state_fst), inSimbol),
-                                                       returnType='sortedTupleWithoutNone')
+                                                       returnType='sortedTuple')
+                # place for check equivalent next_state_self and next_state_fst
+                if self.isFSM() and fst.isFSM():
+                    self_out = final_state_self.isdisjoint(set(state_self))
+                    fst_out = final_state_fst.isdisjoint(set(state_fst))
+                else:
+                    self_out = self.playFST([inSimbol, ], state_self[0])[0]
+                    fst_out = fst.playFST([inSimbol, ], state_fst[0])[0]
+                # print(str(curent_path) + ' check ' + str(self_out) + ' isEqual ' + str(fst_out))
+                if self_out != fst_out:
+                    return curent_path
+
                 if (next_state_self, next_state_fst) not in states_visited:
                     states_stack.append((next_state_self, next_state_fst, curent_path))
                     states_visited.add((next_state_self, next_state_fst))
-                    print('add -> ' + str((next_state_self, next_state_fst, curent_path)))
+                    # print('add -> ' + str((next_state_self, next_state_fst, curent_path)))
 
         return False
 
