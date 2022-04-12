@@ -365,7 +365,19 @@ class fst:
                     continue
         return fst(initState=q0_dfa, transitionFunction=T_dfa, finalStates=finalQ_dfa)
 
-    def isNotEqual(self, fst: 'fst'):
+    def isNotEqual(self, fst: 'fst', check0equal=True, debug=False):
+        def __debug(a):
+            if debug:
+                print("--> " + a)
+
+        appendPair = "append pair of states {} {} to stack, path={}"
+        popPair = "pop pair of states {} {} from stack, path={}"
+        checkEqual = "in signal={}; out pair {} {}; next states {} {}"
+        inVisited = "{} {} in visited states"
+
+        selfType = 'FSM' if self.isFSM() else 'FST Moore' if self.isMoore() else 'FST Mealy'
+        fstType = 'FSM' if fst.isFSM() else 'FST Moore' if fst.isMoore() else 'FST Mealy'
+        __debug("compare {} and {}".format(selfType, fstType))
         if self.isFSM() != fst.isFSM():
             return 'FSM != FST'
         states_stack = list()
@@ -377,11 +389,30 @@ class fst:
         init_state_fst = fst.getEpsilonClosure(fst.initState, returnType='sortedTuple')
         # place for check 0-equivalent init_state_self and init_state_fst
         # have sens for FSM compare to FSM or FST Moore compare to FST Moore
+        if check0equal:
+            __debug("check 0-equivalent {} and {}".format(selfType, fstType))
+            if self.isFSM() and fst.isFSM():
+                self_out = final_state_self.isdisjoint(set(init_state_self))
+                fst_out = final_state_fst.isdisjoint(set(init_state_fst))
+                if self_out != fst_out:
+                    __debug("    " + "{} != {}".format(str(self_out), str(fst_out)))
+                    return 'check 0-equivalent two FSM not pass'
+            elif self.isMoore() and fst.isMoore():
+                self_out = self.getOutSignal(init_state_self[0], None)
+                fst_out = fst.getOutSignal(init_state_self[0], None)
+                if self_out != fst_out:
+                    __debug("    " + "{} != {}".format(str(self_out), str(fst_out)))
+                    return 'check 0-equivalent two Moore FST not pass'
+            else:
+                __debug("  can`t check 0-equivalent {} and {}".format(selfType, fstType))
+
         states_stack.append((init_state_self, init_state_fst, tuple()))
+        __debug(appendPair.format(str(init_state_self), str(init_state_fst), str(tuple())))
         states_visited.add((init_state_self, init_state_fst))
 
         while states_stack:
             (state_self, state_fst, in_path) = states_stack.pop()
+            __debug("  " + popPair.format(str(state_self), str(state_fst), str(in_path)))
             for inSimbol in self.inAlphabet:
                 curent_path = in_path + (inSimbol, )
                 next_state_self = self.getEpsilonClosure(self.getNextStates(set(state_self), inSimbol),
@@ -395,14 +426,19 @@ class fst:
                 else:
                     self_out = self.playFST([inSimbol, ], state_self[0])[0]
                     fst_out = fst.playFST([inSimbol, ], state_fst[0])[0]
-                # print(str(curent_path) + ' check ' + str(self_out) + ' isEqual ' + str(fst_out))
+                __debug("    " + checkEqual.format(str(inSimbol),
+                                                   str(self_out), str(fst_out),
+                                                   str(next_state_self), str(next_state_fst)))
                 if self_out != fst_out:
+                    __debug("    " + "{} != {}".format(str(self_out), str(fst_out)))
                     return curent_path
 
                 if (next_state_self, next_state_fst) not in states_visited:
+                    __debug("      " + appendPair.format(str(next_state_self), str(next_state_fst), str(curent_path)))
                     states_stack.append((next_state_self, next_state_fst, curent_path))
                     states_visited.add((next_state_self, next_state_fst))
-                    # print('add -> ' + str((next_state_self, next_state_fst, curent_path)))
+                else:
+                    __debug("      " + inVisited.format(str(next_state_self), str(next_state_fst)))
 
         return False
 
