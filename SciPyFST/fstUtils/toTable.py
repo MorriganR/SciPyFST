@@ -31,12 +31,11 @@ def toTable(fst: 'fst', flip=True, markStates=True):
         return getStatesLabel(state)[1]
 
     def getTableHeadSellState(state):
+        statePrefix = ""
         if markStates and state == fst.initState:
-            statePrefix = "->"
-        elif markStates and state in fst.finalStates:
-            statePrefix = "*"
-        else:
-            statePrefix = ""
+            statePrefix += "->"
+        if markStates and state in fst.finalStates:
+            statePrefix += "*"
         if fst.isMoore():
             return statePrefix + "{state}/{outSignal}".format(state=getStatesLabelStr(state), outSignal=fst.getOutSignal(state, None, "-"))
         else:

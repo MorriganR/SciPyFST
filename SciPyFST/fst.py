@@ -343,6 +343,7 @@ class fst:
         q0_dfa.discard(None)
         q0_dfa = tuple([c for b, c in sorted([(str(a), a) for a in q0_dfa])])
         Qstack_dfa.append(q0_dfa)
+        Qvisited_dfa.add(q0_dfa)
         while Qstack_dfa:
             curentQ_dfa = Qstack_dfa.pop()
             for inSimbol in self.inAlphabet:

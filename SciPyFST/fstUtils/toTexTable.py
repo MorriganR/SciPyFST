@@ -35,12 +35,11 @@ def toTexTable(fst:'fst', flip=None, markStates=None):
         return getStatesLabel(state)[1]
 
     def getTableHeadSellState(state):
+        statePrefix = ""
         if markStates and state == fst.initState:
-            statePrefix = "$\\rightarrow$"
-        elif markStates and state in fst.finalStates:
-            statePrefix = "*"
-        else:
-            statePrefix = ""
+            statePrefix += "$\\rightarrow$"
+        if markStates and state in fst.finalStates:
+            statePrefix += "*"
         if fst.isMoore():
             return statePrefix + "{state}/{outSignal}".format(state = getStatesLabelStr(state), outSignal = fst.getOutSignal(state, None, "-"))
         else:
