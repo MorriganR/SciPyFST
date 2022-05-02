@@ -331,7 +331,17 @@ class fst:
 
         return fst([], initStateMoore, [], [], transitionFunctionMoore, outputFunctionMoore)
 
-    def asDFA(self):
+    def asDFA(self, debug=False):
+        def __debug(a):
+            if debug:
+                print("--> " + a)
+
+        appendToStack = "append multyState {} to stack and visited states"
+        popFromStack = "pop multyState {} from stack"
+        getNextMultyState = "curent multyState={}; in signal={}; next multyState={}"
+        addTransition = "add transition δ({}, {})=>{}"
+        inVisited = "{} in visited states"
+
         # nfa (  A,  Q,  q0,  F,  T )
         # dfa ( Ad, nextQ_dfa, q0_dfa, finalQ_dfa, T_dfa )
         Qstack_dfa = list()
@@ -344,25 +354,37 @@ class fst:
         q0_dfa = tuple([c for b, c in sorted([(str(a), a) for a in q0_dfa])])
         Qstack_dfa.append(q0_dfa)
         Qvisited_dfa.add(q0_dfa)
+        __debug(appendToStack.format(str(q0_dfa)))
+        __debug("while stack not empty")
         while Qstack_dfa:
             curentQ_dfa = Qstack_dfa.pop()
+            __debug("  " + popFromStack.format(str(curentQ_dfa)))
             for inSimbol in self.inAlphabet:
                 nextQ_dfa = set(self.getEpsilonClosure(self.getNextStates(set(curentQ_dfa), inSimbol)))
                 nextQ_dfa.discard(None)
                 nextQ_dfa = tuple([c for b, c in sorted([(str(a), a) for a in nextQ_dfa])])
+                __debug("    " + getNextMultyState.format(str(curentQ_dfa), str(inSimbol), str(nextQ_dfa)))
                 if tuple() == nextQ_dfa:
+                    __debug("      next state is dead state, do nothing")
                     continue
                 T_dfa.append(tuple([curentQ_dfa, inSimbol, nextQ_dfa]))
+                __debug("      " + addTransition.format(str(curentQ_dfa), str(inSimbol), str(nextQ_dfa)))
                 if nextQ_dfa not in Qvisited_dfa:
+                    __debug("      " + appendToStack.format(str(nextQ_dfa)))
                     Qvisited_dfa.add(nextQ_dfa)
                     if nextQ_dfa != curentQ_dfa:
                         Qstack_dfa.append(nextQ_dfa)
+                else:
+                    __debug("      " + inVisited.format(str(nextQ_dfa)))
+        __debug("stack is empty")
         T_dfa = list(dict.fromkeys(T_dfa))
         finalQ_dfa = list()
+        __debug("collect final states")
         for state_d in Qvisited_dfa:
             for state_n in state_d:
                 if state_n in self.finalStates:
                     finalQ_dfa.append(state_d)
+                    __debug("  state {} is final, because {} is final".format(str(state_d), str(state_n)))
                     continue
         return fst(initState=q0_dfa, transitionFunction=T_dfa, finalStates=finalQ_dfa)
 
